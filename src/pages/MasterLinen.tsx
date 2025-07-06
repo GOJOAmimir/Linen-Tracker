@@ -12,7 +12,7 @@ export default function MasterLinen() {
   const [data, setData] = useState<Linen[]>([]);
 
   useEffect(() => {
-    fetch("https://linen-tracker-production.up.railway.app/master-linen")
+    fetch(`${import.meta.env.VITE_API_URL}/master-line`)
       .then((res) => res.json())
       .then(setData)
       .catch((err) => console.error("Fetch error:", err));

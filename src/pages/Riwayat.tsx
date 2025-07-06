@@ -34,11 +34,10 @@ export default function Riwayat() {
   const [selected, setSelected] = useState<{ t: string; w: string } | null>(
     null
   );
-  const api = "http://localhost:4000";
 
   /* --- 3A  : ambil daftar batch sekali saat mount -------------- */
   useEffect(() => {
-    fetch(`${api}/batch-list`)
+    fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
       .then((r) => r.json())
       .then(setBatches)
       .catch(console.error);
@@ -49,7 +48,9 @@ export default function Riwayat() {
     try {
       const encT = encodeURIComponent(t);
       const encW = encodeURIComponent(w);
-      const res = await fetch(`${api}/batch-report/${encT}/${encW}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/batch-report/${encT}/${encW}`
+      );
       const rows: DetailRow[] = await res.json();
       setDetails(rows);
       setSelected({ t, w });

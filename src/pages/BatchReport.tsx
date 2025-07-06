@@ -25,7 +25,7 @@ export default function BatchReport() {
 
   /* ---------- ambil daftar batch saat mount ---------- */
   useEffect(() => {
-    fetch("http://localhost:4000/batch-list")
+    fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
       .then((r) => r.json())
       .then(setBatchList)
       .catch((e) => console.error("fetch /batch-list", e));
@@ -33,9 +33,9 @@ export default function BatchReport() {
 
   /* ---------- klik tombol Lihat ---------- */
   function handleLihat(tgl: string, wkt: string) {
-    const url = `http://localhost:4000/batch-report/${encodeURIComponent(
-      tgl
-    )}/${encodeURIComponent(wkt)}`;
+    const url = `${
+      import.meta.env.VITE_API_URL
+    }/batch-report/${encodeURIComponent(tgl)}/${encodeURIComponent(wkt)}`;
 
     fetch(url)
       .then((r) => r.json())

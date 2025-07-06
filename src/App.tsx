@@ -20,7 +20,7 @@ function App() {
 
   useEffect(() => {
     const fetchCounts = () =>
-      fetch("http://localhost:4000/status-summary")
+      fetch(`${import.meta.env.VITE_API_URL}/status-summary`)
         .then((r) => r.json())
         .then(setStatusCounts)
         .catch((err) => console.error("Status summary error:", err));
