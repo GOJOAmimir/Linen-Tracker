@@ -86,7 +86,7 @@ app.get('/batch-list', async (_req, res) => {
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
            TIME_FORMAT(Waktu  ,'%H:%i:%s') AS Waktu,
            COUNT(*)                        AS jumlahLinen
-    FROM   LinenBatchDetails
+    FROM   Linenbatchdetails
     GROUP  BY Tanggal, Waktu
     ORDER  BY Tanggal DESC, Waktu DESC
   `;
