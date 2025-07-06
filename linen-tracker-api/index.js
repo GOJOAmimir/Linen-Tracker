@@ -4,7 +4,6 @@ const cors    = require('cors');
 const mysql   = require('mysql2/promise');  
 
 const app  = express();
-const PORT = 4000;
 
 // ‑‑‑‑‑ KONFIGURASI KONEKSI ‑‑‑‑‑
 const pool = mysql.createPool({
@@ -22,7 +21,16 @@ module.exports = pool;
 
 // middleware
 app.use(cors());
+app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('Linen Tracker API is running!');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server listening on port ${PORT}`);
+});
 
 /* GET /master-linen                                             */
 /* ============================================================= */
