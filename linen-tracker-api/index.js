@@ -1,8 +1,6 @@
 // ──────────────────────────────────────────────────────────
-// 1. ENV & dependensi
+// 1. Dependensi
 // ──────────────────────────────────────────────────────────
-require('dotenv').config();            // baca .env lebih dulu
-
 const express = require('express');
 const cors    = require('cors');
 const mysql   = require('mysql2/promise');
@@ -10,31 +8,37 @@ const mysql   = require('mysql2/promise');
 const app = express();
 
 // ──────────────────────────────────────────────────────────
-// 2. Pool koneksi MySQL
-//    ‑ Gunakan DATABASE_URL atau komponen terpisah
-//    ‑ Tambahkan SSL (Railway PUBLIC URL perlu SSL)
+// 2. Konfigurasi koneksi MySQL  (GANTI di sini jika berubah)
 // ──────────────────────────────────────────────────────────
-const pool = mysql.createPool({
-  uri: process.env.DATABASE_URL,       // contoh: mysql://root:pass@host:port/railway
-  ssl: { rejectUnauthorized: true },   // ← penting agar koneksi diterima
+const DB_CONFIG = {
+  host    : 'ballast.proxy.rlwy.net',
+  port    : 44159,
+  user    : 'root',
+  password: 'cYbZVJxpmRmYPyXkVCHJLULXXrreKuvm',
+  database: 'railway',                // ← ganti ke 'master_linen' jika tabel ada di sana
+  ssl     : { rejectUnauthorized: false }, // Railway public MySQL butuh SSL
   timezone: '+07:00',
-  dateStrings: ['DATE', 'DATETIME', 'TIMESTAMP'],
+  dateStrings: ['DATE','DATETIME','TIMESTAMP'],
   waitForConnections: true,
   connectionLimit: 10,
-});
+};
 
-// Tes koneksi sekali di awal (log di Railway ➜ Logs)
+// Buat pool koneksi
+const pool = mysql.createPool(DB_CONFIG);
+
+// Tes koneksi sekali di awal
 (async () => {
   try {
-    const [rows] = await pool.query('SELECT 1');
-    console.log('✅  MySQL connected, result:', rows);
-  } catch (err) {
-    console.error('❌  Cannot connect to MySQL:', err.message);
+    await pool.query('SELECT 1');
+    console.log('✅  MySQL connected');
+  } catch (e) {
+    console.error('❌  DB connect failed:', e.message);
+    process.exit(1);  // Force exit supaya Railway menandai gagal
   }
 })();
 
 // ──────────────────────────────────────────────────────────
-// 3. Middleware
+// 3. Middleware global
 // ──────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
@@ -119,7 +123,5 @@ app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
 // ──────────────────────────────────────────────────────────
 // 5. Start server
 // ──────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`🚀  API server listening on port ${PORT}`)
-);
+const PORT = process.env.PORT || 3000; // Railway akan memberi PORT sendiri
+app.listen(PORT, () => console.log(`🚀  API server listening on port ${PORT}`));
