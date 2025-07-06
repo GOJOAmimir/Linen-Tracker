@@ -12,10 +12,10 @@ export default function MasterLinen() {
   const [data, setData] = useState<Linen[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/master-linen")
+    fetch("https://linen-tracker-production.up.railway.app/master-linen")
       .then((res) => res.json())
       .then(setData)
-      .catch((err) => console.error("Fetch master linen error:", err));
+      .catch((err) => console.error("Fetch error:", err));
   }, []);
 
   return (
