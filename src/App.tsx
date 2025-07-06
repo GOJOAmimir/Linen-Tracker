@@ -44,7 +44,6 @@ function App() {
             <Route path="/batch-report" element={<BatchReport />} />
             <Route path="/Riwayat" element={<Riwayat />} />
             <Route path="/master-linen" element={<MasterLinen />} />
-            <Route path="/ruangan" element={<Ruangan />} />
           </Routes>
         </div>
       </div>
