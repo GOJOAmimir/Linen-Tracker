@@ -1,57 +1,59 @@
-// ──────────────────────────────────────────────────────────
-// 1. Dependensi
-// ──────────────────────────────────────────────────────────
+/******************************************************************
+ * Linen‑Tracker API (Node.js + Express + mysql2/promise)
+ * ---------------------------------------------------------------
+ *  ‑ Koneksi langsung ke Railway MySQL (public host)
+ *  ‑ Nama tabel huruf kecil:  linen, linenbatchdetails
+ *  ‑ Zona waktu Jakarta (+07:00)
+ ******************************************************************/
+
 const express = require('express');
 const cors    = require('cors');
 const mysql   = require('mysql2/promise');
 
 const app = express();
 
-// ──────────────────────────────────────────────────────────
-// 2. Konfigurasi koneksi MySQL  (GANTI di sini jika berubah)
-// ──────────────────────────────────────────────────────────
-const DB_CONFIG = {
+/*───────────────────────────────────────────────────────────────*/
+/* 1. Konfigurasi koneksi MySQL                                 */
+/*───────────────────────────────────────────────────────────────*/
+const pool = mysql.createPool({
   host    : 'ballast.proxy.rlwy.net',
   port    : 44159,
   user    : 'root',
   password: 'cYbZVJxpmRmYPyXkVCHJLULXXrreKuvm',
-  database: 'railway',                // ← ganti ke 'master_linen' jika tabel ada di sana
-  ssl     : { rejectUnauthorized: false }, // Railway public MySQL butuh SSL
+  database: 'railway',              // ganti jika tabel pindah DB
+  ssl     : { rejectUnauthorized: false }, // Railway public → SSL
   timezone: '+07:00',
-  dateStrings: ['DATE','DATETIME','TIMESTAMP'],
+  dateStrings: ['DATE', 'DATETIME', 'TIMESTAMP'],
   waitForConnections: true,
   connectionLimit: 10,
-};
+});
 
-// Buat pool koneksi
-const pool = mysql.createPool(DB_CONFIG);
-
-// Tes koneksi sekali di awal
+/* Tes koneksi di awal */
 (async () => {
   try {
     await pool.query('SELECT 1');
     console.log('✅  MySQL connected');
-  } catch (e) {
-    console.error('❌  DB connect failed:', e.message);
-    process.exit(1);  // Force exit supaya Railway menandai gagal
+  } catch (err) {
+    console.error('❌  DB connect failed:', err.message);
+    process.exit(1);
   }
 })();
 
-// ──────────────────────────────────────────────────────────
-// 3. Middleware global
-// ──────────────────────────────────────────────────────────
+/*───────────────────────────────────────────────────────────────*/
+/* 2. Middleware global                                         */
+/*───────────────────────────────────────────────────────────────*/
 app.use(cors());
 app.use(express.json());
 
-// ──────────────────────────────────────────────────────────
-// 4. Routes
-// ──────────────────────────────────────────────────────────
+/*───────────────────────────────────────────────────────────────*/
+/* 3. Routes                                                    */
+/*───────────────────────────────────────────────────────────────*/
 app.get('/', (_req, res) => res.send('Linen Tracker API is running!'));
 
 /* GET /master-linen */
 app.get('/master-linen', async (_req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM Linen');
+    const [rows] = await pool.query('SELECT * FROM linen');
     res.json(rows);
   } catch (err) {
     console.error('/master-linen error:', err.message);
@@ -63,16 +65,19 @@ app.get('/master-linen', async (_req, res) => {
 app.get('/status-summary', async (_req, res) => {
   const sql = `
     SELECT Status, COUNT(*) AS count
-    FROM   Linen
+    FROM   linen
     GROUP  BY Status
   `;
   try {
     const [rows] = await pool.query(sql);
+
+    /* Susun format tetap */
     const result = { kotor: 0, dicuci: 0, keluar: 0, hilang: 0 };
     rows.forEach(r => {
       const key = (r.Status || '').toLowerCase();
       if (result[key] !== undefined) result[key] = r.count;
     });
+
     res.json(result);
   } catch (err) {
     console.error('/status-summary error:', err.message);
@@ -86,7 +91,7 @@ app.get('/batch-list', async (_req, res) => {
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
            TIME_FORMAT(Waktu  ,'%H:%i:%s') AS Waktu,
            COUNT(*)                        AS jumlahLinen
-    FROM   Linenbatchdetails
+    FROM   linenbatchdetails
     GROUP  BY Tanggal, Waktu
     ORDER  BY Tanggal DESC, Waktu DESC
   `;
@@ -102,11 +107,17 @@ app.get('/batch-list', async (_req, res) => {
 /* GET /batch-report/:tanggal/:waktu */
 app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
   const { tanggal, waktu } = req.params;
+
   const sql = `
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
            TIME_FORMAT(Waktu  ,'%H:%i:%s') AS Waktu,
-           EPC, TipeLinen, OldStatus, NewStatus, Type, Antenna
-    FROM   LinenBatchDetails
+           EPC,
+           TipeLinen,
+           OldStatus,
+           NewStatus,
+           Type,
+           Antenna
+    FROM   linenbatchdetails
     WHERE  DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? 
       AND  TIME_FORMAT(Waktu  ,'%H:%i:%s') = ?
     ORDER  BY EPC
@@ -120,8 +131,10 @@ app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
   }
 });
 
-// ──────────────────────────────────────────────────────────
-// 5. Start server
-// ──────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000; // Railway akan memberi PORT sendiri
-app.listen(PORT, () => console.log(`🚀  API server listening on port ${PORT}`));
+/*───────────────────────────────────────────────────────────────*/
+/* 4. Start server                                              */
+/*───────────────────────────────────────────────────────────────*/
+const PORT = process.env.PORT || 8080;   // Railway inject PORT sendiri
+app.listen(PORT, () => {
+  console.log(`🚀  API server listening on port ${PORT}`);
+});
