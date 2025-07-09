@@ -1,3 +1,4 @@
+// App.tsx
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -7,8 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import BatchReport from "./pages/BatchReport";
 import MasterLinen from "./pages/MasterLinen";
 import Ruangan from "./pages/Ruangan";
-import type { StatusCounts } from "./components/StatusSummary";
 import Riwayat from "./pages/Riwayat";
+import type { StatusCounts } from "./components/StatusSummary";
 
 function App() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({
@@ -17,6 +18,8 @@ function App() {
     keluar: 0,
     hilang: 0,
   });
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchCounts = () =>
@@ -32,19 +35,32 @@ function App() {
 
   return (
     <Router>
-      <Navbar />
       <div className="d-flex">
-        <Sidebar />
-        <div className="flex-grow-1 pt-4 px-3">
-          <Routes>
-            <Route
-              path="/"
-              element={<Dashboard statusCounts={statusCounts} />}
-            />
-            <Route path="/batch-report" element={<BatchReport />} />
-            <Route path="/Riwayat" element={<Riwayat />} />
-            <Route path="/master-linen" element={<MasterLinen />} />
-          </Routes>
+        <Sidebar isOpen={sidebarOpen} />
+        <div
+          className="flex-grow-1"
+          style={{
+            marginLeft: sidebarOpen ? 250 : 60,
+            transition: "margin-left 0.3s",
+            width: "100%",
+          }}
+        >
+          <Navbar
+            toggleSidebar={() => setSidebarOpen((prev) => !prev)}
+            sidebarOpen={sidebarOpen}
+          />
+          <div className="pt-4 px-3">
+            <Routes>
+              <Route
+                path="/"
+                element={<Dashboard statusCounts={statusCounts} />}
+              />
+              <Route path="/batch-report" element={<BatchReport />} />
+              <Route path="/riwayat" element={<Riwayat />} />
+              <Route path="/master-linen" element={<MasterLinen />} />
+              <Route path="/ruangan" element={<Ruangan />} />
+            </Routes>
+          </div>
         </div>
       </div>
     </Router>

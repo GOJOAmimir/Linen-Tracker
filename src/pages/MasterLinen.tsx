@@ -10,49 +10,54 @@ type Linen = {
 
 export default function MasterLinen() {
   const [data, setData] = useState<Linen[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [epcInput, setEpcInput] = useState("");
-  const [tipeInput, setTipeInput] = useState("");
+  const [filteredData, setFilteredData] = useState<Linen[]>([]);
+  const [search, setSearch] = useState("");
 
-  // Fetch data awal
+  const [epc, setEpc] = useState("");
+  const [tipe, setTipe] = useState("");
+  const [maxCycle, setMaxCycle] = useState(20);
+
   const fetchData = () => {
     fetch(`${import.meta.env.VITE_API_URL}/master-linen`)
       .then((res) => res.json())
-      .then(setData)
+      .then((result) => {
+        setData(result);
+        setFilteredData(result);
+      })
       .catch((err) => console.error("Fetch error:", err));
   };
 
   useEffect(fetchData, []);
 
-  // Filter data berdasar input pencarian
-  const filteredData = data.filter(
-    (linen) =>
-      linen.EPC.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      linen.Tipe.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter saat search berubah
+  useEffect(() => {
+    const lower = search.toLowerCase();
+    const filtered = data.filter(
+      (item) =>
+        item.EPC.toLowerCase().includes(lower) ||
+        item.Tipe.toLowerCase().includes(lower)
+    );
+    setFilteredData(filtered);
+  }, [search, data]);
 
-  // Submit data baru
-  const handleAddLinen = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!epcInput.trim() || !tipeInput.trim()) {
-      alert("EPC dan Tipe tidak boleh kosong.");
-      return;
-    }
-
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/master-linen`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ epc: epcInput, tipe: tipeInput }),
+        body: JSON.stringify({ epc, tipe, maxCycle }),
       });
 
       const result = await res.json();
-      alert(result.message || "Linen berhasil ditambahkan");
-      setEpcInput("");
-      setTipeInput("");
-      fetchData(); // Refresh data
+      alert(result.message || "Linen ditambahkan");
+      setEpc("");
+      setTipe("");
+      setMaxCycle(20);
+      fetchData();
+      (document.getElementById("closeModalBtn") as HTMLButtonElement)?.click();
     } catch (err) {
-      console.error("Tambah linen error:", err);
+      console.error("Submit error:", err);
     }
   };
 
@@ -60,43 +65,106 @@ export default function MasterLinen() {
     <div className="container-fluid mt-4">
       <h2 className="mb-3 text-start">Master Linen</h2>
 
-      {/* Form tambah data */}
-      <form onSubmit={handleAddLinen} className="mb-4 d-flex gap-2">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="EPC"
-          value={epcInput}
-          onChange={(e) => setEpcInput(e.target.value)}
-        />
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Tipe Linen"
-          value={tipeInput}
-          onChange={(e) => setTipeInput(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary">
-          Tambah
+      {/* Tombol dan Pencarian */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <button
+          className="btn btn-success"
+          data-bs-toggle="modal"
+          data-bs-target="#addLinenModal"
+        >
+          + Tambah
         </button>
-      </form>
 
-      {/* Input pencarian */}
-      <input
-        type="text"
-        className="form-control mb-3"
-        placeholder="Cari EPC atau Tipe Linen..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Cari EPC atau Tipe..."
+          className="form-control w-25"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
+      {/* Modal Tambah Linen */}
+      <div
+        className="modal fade"
+        id="addLinenModal"
+        tabIndex={-1}
+        aria-labelledby="addLinenModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <form onSubmit={handleSubmit}>
+              <div className="modal-header">
+                <h5 className="modal-title" id="addLinenModalLabel">
+                  Tambah Linen Baru
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                  id="closeModalBtn"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">EPC</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={epc}
+                    onChange={(e) => setEpc(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Tipe Linen</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={tipe}
+                    onChange={(e) => setTipe(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Max Cycle</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={maxCycle}
+                    onChange={(e) => setMaxCycle(parseInt(e.target.value))}
+                    required
+                    min={1}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Batal
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabel */}
       <table className="table table-bordered table-striped table-sm">
         <thead>
           <tr>
             <th>EPC</th>
             <th>Tipe Linen</th>
-            <th className="text-center w-auto">Maximal Siklus</th>
-            <th className="text-center w-auto">Siklus</th>
+            <th className="text-center">Maximal Siklus</th>
+            <th className="text-center">Siklus</th>
             <th className="text-center">Status</th>
           </tr>
         </thead>
