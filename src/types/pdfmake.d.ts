@@ -3,8 +3,6 @@
 //  Deklarasi module agar TypeScript mengenali pdfmake CommonJS bundle
 //  + vfs_fonts (font‐embedding) tanpa error `any` / “cannot find module”
 
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-
 declare module 'pdfmake/build/pdfmake' {
   import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 

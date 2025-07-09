@@ -1,4 +1,7 @@
 import StatusSummary from "../components/StatusSummary";
+import BatchSummary from "../components/BatchSummary";
+import LinenByDay from "../components/LinenByDay";
+import TopCycles from "../components/TopCycle";
 import { BsHouseDoorFill } from "react-icons/bs";
 
 type Props = {
@@ -18,17 +21,23 @@ export default function Dashboard({ statusCounts }: Props) {
           <BsHouseDoorFill size={25} className="me-2" />
           Dashboard
         </h2>
-        <hr className="text-white my-1" />
       </div>
 
       <StatusSummary counts={statusCounts} />
 
-      <div className="mt-5">
-        <h4>Selamat datang!</h4>
-        <p>
-          Gunakan menu di samping untuk mengakses laporan per batch dan riwayat
-          linen.
-        </p>
+      <div className="row mt-4 g-3 align-items-stretch">
+        <div className="col-md-6">
+          <BatchSummary />
+        </div>
+        <div className="col-md-6">
+          <LinenByDay />
+        </div>
+      </div>
+
+      <div className="row mt-3">
+        <div className="col-12">
+          <TopCycles />
+        </div>
       </div>
     </div>
   );

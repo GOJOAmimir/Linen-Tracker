@@ -17,6 +17,9 @@ export default function MasterLinen() {
   const [tipe, setTipe] = useState("");
   const [maxCycle, setMaxCycle] = useState(20);
 
+  const [editMode, setEditMode] = useState(false);
+  const [selectedEpcs, setSelectedEpcs] = useState<string[]>([]);
+
   const fetchData = () => {
     fetch(`${import.meta.env.VITE_API_URL}/master-linen`)
       .then((res) => res.json())
@@ -29,7 +32,6 @@ export default function MasterLinen() {
 
   useEffect(fetchData, []);
 
-  // Filter saat search berubah
   useEffect(() => {
     const lower = search.toLowerCase();
     const filtered = data.filter(
@@ -61,19 +63,62 @@ export default function MasterLinen() {
     }
   };
 
+  const toggleSelection = (epc: string) => {
+    setSelectedEpcs((prev) =>
+      prev.includes(epc) ? prev.filter((id) => id !== epc) : [...prev, epc]
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Yakin ingin menghapus ${selectedEpcs.length} linen?`))
+      return;
+
+    try {
+      for (const epc of selectedEpcs) {
+        await fetch(`${import.meta.env.VITE_API_URL}/master-linen/${epc}`, {
+          method: "DELETE",
+        });
+      }
+      alert("Linen berhasil dihapus.");
+      setSelectedEpcs([]);
+      fetchData();
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
   return (
     <div className="container-fluid mt-4">
       <h2 className="mb-3 text-start">Master Linen</h2>
 
-      {/* Tombol dan Pencarian */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <button
-          className="btn btn-success"
-          data-bs-toggle="modal"
-          data-bs-target="#addLinenModal"
-        >
-          + Tambah
-        </button>
+        <div className="d-flex gap-2">
+          <button
+            className="btn btn-success"
+            data-bs-toggle="modal"
+            data-bs-target="#addLinenModal"
+          >
+            + Tambah
+          </button>
+
+          <button
+            className={`btn ${
+              editMode ? "btn-warning" : "btn-outline-secondary"
+            }`}
+            onClick={() => {
+              setEditMode(!editMode);
+              setSelectedEpcs([]);
+            }}
+          >
+            {editMode ? "Selesai" : "Edit"}
+          </button>
+
+          {editMode && selectedEpcs.length > 0 && (
+            <button className="btn btn-danger" onClick={handleDelete}>
+              Hapus ({selectedEpcs.length})
+            </button>
+          )}
+        </div>
 
         <input
           type="text"
@@ -157,10 +202,11 @@ export default function MasterLinen() {
         </div>
       </div>
 
-      {/* Tabel */}
+      {/* Tabel Linen */}
       <table className="table table-bordered table-striped table-sm">
         <thead>
           <tr>
+            {editMode && <th className="text-center">Pilih</th>}
             <th>EPC</th>
             <th>Tipe Linen</th>
             <th className="text-center">Maximal Siklus</th>
@@ -171,6 +217,15 @@ export default function MasterLinen() {
         <tbody>
           {filteredData.map((linen) => (
             <tr key={linen.EPC}>
+              {editMode && (
+                <td className="text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedEpcs.includes(linen.EPC)}
+                    onChange={() => toggleSelection(linen.EPC)}
+                  />
+                </td>
+              )}
               <td>{linen.EPC}</td>
               <td>{linen.Tipe}</td>
               <td className="text-center">{linen.MaxCuci}</td>

@@ -61,6 +61,43 @@ app.get('/master-linen', async (_req, res) => {
   }
 });
 
+// POST new linen
+app.post('/master-linen', async (req, res) => {
+  const { epc, tipe, maxCycle } = req.body;
+
+  if (!epc || !tipe || !maxCycle) {
+    return res.status(400).json({ error: 'EPC, tipe, dan maxCycle wajib diisi' });
+  }
+
+  try {
+    const sql = `INSERT INTO linen (EPC, Tipe, MaxCuci, cycle, Status) VALUES (?, ?, ?, 0, 'kotor')`;
+    await pool.query(sql, [epc, tipe, maxCycle]);
+
+    res.json({ message: 'Linen berhasil ditambahkan' });
+  } catch (err) {
+    console.error('POST /master-linen error:', err.message);
+    res.status(500).json({ error: 'Gagal menambahkan linen' });
+  }
+});
+
+// DELETE linen by EPC
+app.delete('/master-linen/:epc', async (req, res) => {
+  const { epc } = req.params;
+
+  try {
+    const [result] = await pool.query('DELETE FROM linen WHERE EPC = ?', [epc]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Linen tidak ditemukan' });
+    }
+
+    res.json({ message: 'Linen berhasil dihapus' });
+  } catch (err) {
+    console.error('DELETE /master-linen error:', err.message);
+    res.status(500).json({ error: 'Gagal menghapus linen' });
+  }
+});
+
 /* GET /status-summary */
 app.get('/status-summary', async (_req, res) => {
   const sql = `
