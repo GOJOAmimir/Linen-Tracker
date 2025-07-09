@@ -122,6 +122,29 @@ app.get('/status-summary', async (_req, res) => {
   }
 });
 
+/* GET /batches/latest */
+app.get('/batches/latest', async (_req, res) => {
+  const sql = `
+    SELECT 
+      CONCAT(DATE_FORMAT(Tanggal, '%Y-%m-%d'), ' ', TIME_FORMAT(Waktu, '%H:%i')) AS waktu,
+      COUNT(*) AS totalLinen,
+      MAX(NewStatus) AS status,
+      CONCAT(DATE_FORMAT(Tanggal, '%Y%m%d'), LPAD(HOUR(Waktu), 2, '0'), LPAD(MINUTE(Waktu), 2, '0')) AS id
+    FROM linenbatchdetails
+    GROUP BY Tanggal, Waktu
+    ORDER BY Tanggal DESC, Waktu DESC
+    LIMIT 5
+  `;
+  try {
+    const [rows] = await pool.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error('/batches/latest error:', err.message);
+    res.status(500).json({ error: 'Gagal mengambil data batch terbaru' });
+  }
+});
+
+
 /* GET /batch-list */
 app.get('/batch-list', async (_req, res) => {
   const sql = `
