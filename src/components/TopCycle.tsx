@@ -4,6 +4,7 @@ type Linen = {
   EPC: string;
   Tipe: string;
   cycle: number;
+  MaxCuci: number;
   Status: string;
 };
 
@@ -28,7 +29,8 @@ export default function TopCycles() {
             <tr>
               <th>EPC</th>
               <th>Tipe</th>
-              <th className="text-center">Cycle</th>
+              <th className="text-center">Siklus</th>
+              <th className="text-center">Max Cuci</th>
               <th className="text-center">Status</th>
             </tr>
           </thead>
@@ -38,14 +40,15 @@ export default function TopCycles() {
                 <td>{linen.EPC}</td>
                 <td>{linen.Tipe}</td>
                 <td className="text-center">{linen.cycle}</td>
+                <td className="text-center">{linen.MaxCuci}</td>
                 <td className="text-center">
                   <span
                     className={`badge ${
-                      linen.Status === "keluar"
+                      linen.Status === "Keluar"
                         ? "bg-success"
-                        : linen.Status === "hilang"
+                        : linen.Status === "Hilang"
                         ? "bg-danger"
-                        : linen.Status === "dicuci"
+                        : linen.Status === "Dicuci"
                         ? "bg-info text-dark"
                         : "bg-secondary"
                     }`}
@@ -57,7 +60,7 @@ export default function TopCycles() {
             ))}
             {topLinen.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-muted py-3">
+                <td colSpan={5} className="text-center text-muted py-3">
                   Tidak ada data
                 </td>
               </tr>

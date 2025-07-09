@@ -126,7 +126,7 @@ app.get('/status-summary', async (_req, res) => {
 app.get('/linen/top-cycles', async (_req, res) => {
   try {
     const sql = `
-      SELECT EPC, Tipe, cycle, Status
+      SELECT EPC, Tipe, cycle, Status, MaxCuci
       FROM linen
       ORDER BY cycle DESC
       LIMIT 5
