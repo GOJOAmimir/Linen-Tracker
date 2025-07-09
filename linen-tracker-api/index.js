@@ -122,6 +122,24 @@ app.get('/status-summary', async (_req, res) => {
   }
 });
 
+/* GET /linen/top-cycles */
+app.get('/linen/top-cycles', async (_req, res) => {
+  try {
+    const sql = `
+      SELECT EPC, Tipe, cycle, Status
+      FROM linen
+      ORDER BY cycle DESC
+      LIMIT 5
+    `;
+    const [rows] = await pool.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error('/linen/top-cycles error:', err.message);
+    res.status(500).json({ error: 'Gagal mengambil data siklus tertinggi' });
+  }
+});
+
+
 /* GET /batches/latest */
 app.get('/batches/latest', async (_req, res) => {
   const sql = `

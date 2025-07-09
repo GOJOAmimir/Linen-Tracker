@@ -4,48 +4,64 @@ type Linen = {
   EPC: string;
   Tipe: string;
   cycle: number;
-  MaxCuci: number;
+  Status: string;
 };
 
 export default function TopCycles() {
-  const [data, setData] = useState<Linen[]>([]);
+  const [topLinen, setTopLinen] = useState<Linen[]>([]);
 
   useEffect(() => {
-    // Ganti dengan fetch asli nanti
-    const dummy: Linen[] = [
-      { EPC: "E200341201", Tipe: "Seprei", cycle: 18, MaxCuci: 20 },
-      { EPC: "E200341202", Tipe: "Handuk", cycle: 17, MaxCuci: 20 },
-      { EPC: "E200341203", Tipe: "Sarung Bantal", cycle: 16, MaxCuci: 20 },
-      { EPC: "E200341204", Tipe: "Selimut", cycle: 15, MaxCuci: 20 },
-      { EPC: "E200341205", Tipe: "Bed Cover", cycle: 14, MaxCuci: 20 },
-    ];
-    setData(dummy);
+    fetch(`${import.meta.env.VITE_API_URL}/linen/top-cycles`)
+      .then((res) => res.json())
+      .then(setTopLinen)
+      .catch((err) => console.error("Fetch top cycles error:", err));
   }, []);
 
   return (
-    <div className="card shadow-sm mt-4">
+    <div className="card shadow-sm">
       <div className="card-header bg-white">
-        <h5 className="mb-0">Siklus Linen Tertinggi</h5>
+        <h5 className="mb-0">Top 5 Linen dengan Siklus Tertinggi</h5>
       </div>
-      <div className="card-body">
-        <table className="table table-sm table-bordered mb-0">
+      <div className="card-body p-0">
+        <table className="table table-sm mb-0">
           <thead className="table-light">
             <tr>
               <th>EPC</th>
               <th>Tipe</th>
-              <th className="text-center">Siklus</th>
-              <th className="text-center">Max</th>
+              <th className="text-center">Cycle</th>
+              <th className="text-center">Status</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((item) => (
-              <tr key={item.EPC}>
-                <td>{item.EPC}</td>
-                <td>{item.Tipe}</td>
-                <td className="text-center">{item.cycle}</td>
-                <td className="text-center">{item.MaxCuci}</td>
+            {topLinen.map((linen) => (
+              <tr key={linen.EPC}>
+                <td>{linen.EPC}</td>
+                <td>{linen.Tipe}</td>
+                <td className="text-center">{linen.cycle}</td>
+                <td className="text-center">
+                  <span
+                    className={`badge ${
+                      linen.Status === "keluar"
+                        ? "bg-success"
+                        : linen.Status === "hilang"
+                        ? "bg-danger"
+                        : linen.Status === "dicuci"
+                        ? "bg-info text-dark"
+                        : "bg-secondary"
+                    }`}
+                  >
+                    {linen.Status}
+                  </span>
+                </td>
               </tr>
             ))}
+            {topLinen.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-muted py-3">
+                  Tidak ada data
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
