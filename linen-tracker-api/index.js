@@ -162,6 +162,27 @@ app.get('/batches/latest', async (_req, res) => {
   }
 });
 
+// GET /batch-summary/:tanggal/:waktu
+app.get('/batch-summary/:tanggal/:waktu', async (req, res) => {
+  const { tanggal, waktu } = req.params;
+  const sql = `
+    SELECT TipeLinen, COUNT(*) AS Jumlah
+    FROM   linenbatchdetails
+    WHERE  DATE_FORMAT(Tanggal,'%Y-%m-%d') = ?
+      AND  TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+    GROUP BY TipeLinen
+    ORDER BY Jumlah DESC
+  `;
+  try {
+    const [rows] = await pool.query(sql, [tanggal, waktu]);
+    res.json(rows);
+  } catch (err) {
+    console.error('/batch-summary error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 /* GET /batch-list */
 app.get('/batch-list', async (_req, res) => {

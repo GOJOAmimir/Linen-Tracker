@@ -1,3 +1,4 @@
+// src/pages/BatchInfo.tsx
 import { useEffect, useState } from "react";
 
 type BatchListEntry = {
@@ -6,24 +7,19 @@ type BatchListEntry = {
   jumlahLinen: number;
 };
 
-type LinenEntry = {
-  EPC: string;
+type BatchSummary = {
   TipeLinen: string;
-  OldStatus: string;
-  NewStatus: string;
-  Antenna: number;
-  Type: string;
+  Jumlah: number;
 };
 
-export default function BatchReport() {
+export default function BatchInfo() {
   const [batchList, setBatchList] = useState<BatchListEntry[]>([]);
-  const [detailRows, setDetailRows] = useState<LinenEntry[]>([]);
+  const [summaryRows, setSummaryRows] = useState<BatchSummary[]>([]);
   const [selected, setSelected] = useState<{
     tanggal: string;
     waktu: string;
   } | null>(null);
 
-  /* ---------- ambil daftar batch saat mount ---------- */
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
       .then((r) => r.json())
@@ -31,26 +27,23 @@ export default function BatchReport() {
       .catch((e) => console.error("fetch /batch-list", e));
   }, []);
 
-  /* ---------- klik tombol Lihat ---------- */
-  function handleLihat(tgl: string, wkt: string) {
+  function handleInfo(tanggal: string, waktu: string) {
     const url = `${
       import.meta.env.VITE_API_URL
-    }/batch-report/${encodeURIComponent(tgl)}/${encodeURIComponent(wkt)}`;
-
+    }/batch-summary/${encodeURIComponent(tanggal)}/${encodeURIComponent(
+      waktu
+    )}`;
     fetch(url)
       .then((r) => r.json())
-      .then((rows) => {
-        setDetailRows(rows);
-        setSelected({ tanggal: tgl, waktu: wkt });
-      })
-      .catch((e) => console.error("fetch /batch-report", e));
+      .then(setSummaryRows)
+      .then(() => setSelected({ tanggal, waktu }))
+      .catch((e) => console.error("fetch /batch-summary", e));
   }
 
   return (
     <div>
       <h2 className="mb-3">Informasi Batch</h2>
 
-      {/* ---------- tabel daftar batch ---------- */}
       <table className="table table-bordered table-hover align-middle">
         <thead className="table-primary text-center">
           <tr>
@@ -76,10 +69,10 @@ export default function BatchReport() {
               <td className="text-center">{b.jumlahLinen}</td>
               <td>
                 <button
-                  className="btn btn-sm btn-primary w-100"
-                  onClick={() => handleLihat(b.Tanggal, b.Waktu)}
+                  className="btn btn-sm btn-info w-100"
+                  onClick={() => handleInfo(b.Tanggal, b.Waktu)}
                 >
-                  Lihat
+                  Info
                 </button>
               </td>
             </tr>
@@ -87,43 +80,33 @@ export default function BatchReport() {
         </tbody>
       </table>
 
-      {/* ---------- detail batch ---------- */}
       {selected && (
         <>
           <h4 className="mt-4">
-            Detail Batch&nbsp;{selected.tanggal}&nbsp;{selected.waktu}
+            Ringkasan Batch&nbsp;
+            {selected.tanggal}&nbsp;
+            {selected.waktu}
           </h4>
 
-          <table className="table table-sm table-bordered table-striped align-middle">
+          <table className="table table-bordered table-sm">
             <thead className="table-light">
               <tr>
-                <th>EPC</th>
                 <th>Tipe Linen</th>
-                <th>Old Status</th>
-                <th>New Status</th>
-                <th className="text-center">Ant</th>
-                <th className="text-center">Tipe Batch</th>
+                <th>Jumlah</th>
               </tr>
             </thead>
             <tbody>
-              {detailRows.length === 0 && (
+              {summaryRows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted">
+                  <td colSpan={2} className="text-center text-muted py-3">
                     Tidak ada data
                   </td>
                 </tr>
               )}
-
-              {detailRows.map((row) => (
-                <tr key={row.EPC}>
-                  <td style={{ maxWidth: 240, wordBreak: "break-all" }}>
-                    {row.EPC}
-                  </td>
+              {summaryRows.map((row) => (
+                <tr key={row.TipeLinen}>
                   <td>{row.TipeLinen}</td>
-                  <td>{row.OldStatus}</td>
-                  <td>{row.NewStatus}</td>
-                  <td className="text-center">{row.Antenna}</td>
-                  <td className="text-center">{row.Type}</td>
+                  <td>{row.Jumlah}</td>
                 </tr>
               ))}
             </tbody>
