@@ -151,7 +151,7 @@ app.get('/batches/latest', async (_req, res) => {
     FROM linenbatchdetails
     GROUP BY Tanggal, Waktu
     ORDER BY Tanggal DESC, Waktu DESC
-    LIMIT 5
+    LIMIT 9
   `;
   try {
     const [rows] = await pool.query(sql);

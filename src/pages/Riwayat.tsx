@@ -141,42 +141,44 @@ export default function Riwayat() {
     <div>
       <h2 className="mb-3">Riwayat Batch &amp; Cetak PDF</h2>
 
-      {/* --- DAFTAR BATCH --------------------------------------- */}
-      <table className="table table-bordered table-hover align-middle">
-        <thead className="table-primary text-center">
-          <tr>
-            <th>Tanggal</th>
-            <th>Waktu</th>
-            <th>Jumlah Linen</th>
-            <th style={{ width: 90 }}>Detail</th>
-          </tr>
-        </thead>
-        <tbody>
-          {batches.length === 0 && (
+      {/* --- DAFTAR BATCH ---------------------- */}
+      <div style={{ maxHeight: 620, overflowY: "auto" }} className="mb-4">
+        <table className="table table-bordered table-hover align-middle mb-0">
+          <thead className="table-primary text-center">
             <tr>
-              <td colSpan={4} className="text-center text-muted">
-                Tidak ada data
-              </td>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>Jumlah Linen</th>
+              <th style={{ width: 90 }}>Detail</th>
             </tr>
-          )}
+          </thead>
+          <tbody>
+            {batches.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-muted">
+                  Tidak ada data
+                </td>
+              </tr>
+            )}
 
-          {batches.map((b) => (
-            <tr key={`${b.Tanggal}-${b.Waktu}`}>
-              <td>{b.Tanggal}</td>
-              <td>{b.Waktu}</td>
-              <td className="text-center">{b.jumlahLinen}</td>
-              <td>
-                <button
-                  className="btn btn-sm btn-outline-primary w-100"
-                  onClick={() => loadDetails(b.Tanggal, b.Waktu)}
-                >
-                  Detail
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            {batches.map((b) => (
+              <tr key={`${b.Tanggal}-${b.Waktu}`}>
+                <td>{b.Tanggal}</td>
+                <td>{b.Waktu}</td>
+                <td className="text-center">{b.jumlahLinen}</td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-outline-primary w-100"
+                    onClick={() => loadDetails(b.Tanggal, b.Waktu)}
+                  >
+                    Detail
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* --- DETAIL BATCH -------------------------------------- */}
       {selected && (
@@ -214,7 +216,7 @@ export default function Riwayat() {
               {details.map((d, idx) => (
                 <tr key={d.EPC}>
                   <td className="text-center">{idx + 1}</td>
-                  <td style={{ maxWidth: 230, wordBreak: "break-all" }}>
+                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>
                     {d.EPC}
                   </td>
                   <td>{d.TipeLinen}</td>
