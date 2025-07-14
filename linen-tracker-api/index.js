@@ -1,14 +1,7 @@
-/******************************************************************
- * Linen‑Tracker API (Node.js + Express + mysql2/promise)
- * ---------------------------------------------------------------
- *  ‑ Koneksi langsung ke Railway MySQL (public host)
- *  ‑ Nama tabel huruf kecil:  linen, linenbatchdetails
- *  ‑ Zona waktu Jakarta (+07:00)
- ******************************************************************/
-
 const express = require('express');
 const cors    = require('cors');
 const mysql   = require('mysql2/promise');
+require('dotenv').config();
 
 const app = express();
 
@@ -16,17 +9,18 @@ const app = express();
 /* 1. Konfigurasi koneksi MySQL                                 */
 /*───────────────────────────────────────────────────────────────*/
 const pool = mysql.createPool({
-  host    : 'ballast.proxy.rlwy.net',
-  port    : 44159,
-  user    : 'root',
-  password: 'cYbZVJxpmRmYPyXkVCHJLULXXrreKuvm',
-  database: 'railway',              // ganti jika tabel pindah DB
-  ssl     : { rejectUnauthorized: false }, // Railway public → SSL
+  host    : process.env.DB_HOST,
+  port    : process.env.DB_PORT,
+  user    : process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  ssl     : { rejectUnauthorized: false },
   timezone: '+07:00',
   dateStrings: ['DATE', 'DATETIME', 'TIMESTAMP'],
   waitForConnections: true,
   connectionLimit: 10,
 });
+
 
 /* Tes koneksi di awal */
 (async () => {
@@ -162,7 +156,7 @@ app.get('/batches/latest', async (_req, res) => {
   }
 });
 
-// GET /batch-summary/:tanggal/:waktu
+/* GET /batch-summary/:tanggal/:waktu */
 app.get('/batch-summary/:tanggal/:waktu', async (req, res) => {
   const { tanggal, waktu } = req.params;
   const sql = `
