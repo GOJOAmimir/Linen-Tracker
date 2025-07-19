@@ -1,33 +1,36 @@
 import { useEffect, useState } from "react";
+import { Table, Button } from "react-bootstrap";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
-if (!(pdfMake as any).vfs) {
-  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
+pdfMake.vfs = pdfFonts.vfs;
+
+
+interface BatchRow {
+  tanggal: string;
+  waktu: string;
+  total: number;
+  batchType: string;
 }
 
-type BatchRow = {
-  Tanggal: string;
-  Waktu: string;
-  jumlahLinen: number;
-  batchType: string;
-};
-
-type DetailRow = {
-  EPC: string;
-  TipeLinen: string;
-  OldStatus: string;
-  NewStatus: string;
-  Antenna: number;
-  Type: string;
-  batchType: string;
-};
+interface DetailRow {
+  uid: string;
+  linen: string;
+  status: string;
+  antenna: number;
+  waktu: string;
+}
 
 export default function Riwayat() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
   const [details, setDetails] = useState<DetailRow[]>([]);
-  const [selected, setSelected] = useState<{ t: string; w: string; type: string } | null>(null);
+  const [selected, setSelected] = useState<{
+    t: string;
+    w: string;
+    type: string;
+  } | null>(null);
 
+  // Ambil daftar batch
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
       .then((r) => r.json())
@@ -35,21 +38,28 @@ export default function Riwayat() {
       .catch(console.error);
   }, []);
 
+  // Ambil detail untuk batch tertentu
   async function loadDetails(t: string, w: string, type: string) {
   try {
-    const encT = encodeURIComponent(t);
-    const encW = encodeURIComponent(w);
+    const encT = encodeURIComponent(t);     // Tanggal (format: YYYY-MM-DD)
+    const encW = encodeURIComponent(w);     // Waktu (format: HH:mm:ss)
+    const encType = encodeURIComponent(type); // Batch type (Dicuci atau Keluar)
 
-    const endpoint = type === "Dicuci"
-      ? `/batch-report-in/${encT}/${encW}`
-      : `/batch-report-out/${encT}/${encW}`;
-
+    const endpoint = `/batch-report/${encT}/${encW}/${encType}`;
     const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`);
-    const rows: DetailRow[] = await res.json();
+
+    const rows = await res.json();
+
+    if (!Array.isArray(rows)) {
+      console.error("Invalid detail data:", rows);
+      setDetails([]);
+      return;
+    }
+
+    setSelected({ t, w, type });
     setDetails(rows);
-    setSelected({ t, w, type }); // simpan dengan tipe yang dipilih
   } catch (err) {
-    console.error(err);
+    console.error("Failed to load batch details:", err);
   }
 }
 
@@ -57,154 +67,115 @@ export default function Riwayat() {
   function handlePrint() {
     if (!selected) return;
 
-    const body = [
-      [
-        { text: "No", style: "tableHeader" },
-        { text: "EPC", style: "tableHeader" },
-        { text: "Tipe Linen", style: "tableHeader" },
-        { text: "Status Awal", style: "tableHeader" },
-        { text: "Status Akhir", style: "tableHeader" },
-        { text: "Antenna", style: "tableHeader" },
-        { text: "Status", style: "tableHeader" },
-      ],
-      ...details.map((d, idx) => [
-        idx + 1,
-        d.EPC,
-        d.TipeLinen,
-        d.OldStatus,
-        d.NewStatus,
-        d.Antenna.toString(),
-        d.batchType,
-      ]),
-    ];
-
     const docDefinition = {
-      pageSize: "A4",
-      pageOrientation: "landscape",
-      pageMargins: [40, 60, 40, 60],
       content: [
-        { text: "RS Cileungsi", style: "mainTitle" },
-        { text: "Laporan Batch Linen", style: "subTitle", margin: [0, 2, 0, 2] },
-        {
-          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}    Jenis : ${selected.type}\n\n`,
-          style: "info",
-        },
+        { text: "Laporan Batch Linen", style: "header" },
+        { text: `Tanggal: ${selected.t}`, margin: [0, 10, 0, 0] },
+        { text: `Waktu: ${selected.w}` },
+        { text: `Jenis: ${selected.type}`, margin: [0, 0, 0, 10] },
         {
           table: {
             headerRows: 1,
-            widths: [30, "*", 80, 70, 80, 45, 65],
-            body,
+            widths: ["*", "*", "*", "*"],
+            body: [
+              ["UID", "Jenis Linen", "Status", "Antenna"],
+              ...details.map((row) => [
+                row.uid,
+                row.linen,
+                row.status,
+                row.antenna.toString(),
+              ]),
+            ],
           },
-          layout: "lightHorizontalLines",
         },
         {
-          text: `\nTotal Linen : ${details.length}`,
-          alignment: "right",
+          text: `\nTotal Linen: ${details.length}`,
           bold: true,
-          margin: [0, 8, 0, 0],
+          margin: [0, 10, 0, 0],
         },
       ],
       styles: {
-        mainTitle: { fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 4] },
-        subTitle: { fontSize: 15, bold: true, alignment: "center" },
-        info: { fontSize: 11, alignment: "center", margin: [0, 0, 0, 10] },
-        tableHeader: { bold: true, fillColor: "#eeeeee", fontSize: 10 },
+        header: {
+          fontSize: 16,
+          bold: true,
+          alignment: "center",
+        },
       },
-      defaultStyle: { fontSize: 9 },
     };
 
     pdfMake.createPdf(docDefinition).open();
   }
 
   return (
-    <div>
-      <h2 className="mb-3">Riwayat Batch &amp; Cetak PDF</h2>
+    <div className="container py-4">
+      <h3>Riwayat Pemrosesan Linen</h3>
 
-      {/* Daftar batch */}
-      <div style={{ maxHeight: 620, overflowY: "auto" }} className="mb-4">
-        <table className="table table-bordered table-hover align-middle mb-0">
-          <thead className="table-primary text-center">
-            <tr>
-              <th>Tanggal</th>
-              <th>Waktu</th>
-              <th>Jumlah</th>
-              <th>Status</th>
-              <th style={{ width: 90 }}>Detail</th>
+      <Table striped bordered hover responsive className="mt-4">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Waktu</th>
+            <th>Jenis</th>
+            <th>Total</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {batches.map((batch, index) => (
+            <tr key={index}>
+              <td>{batch.tanggal}</td>
+              <td>{batch.waktu}</td>
+              <td>{batch.batchType}</td>
+              <td>{batch.total}</td>
+              <td>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() =>
+                    loadDetails(batch.tanggal, batch.waktu, batch.batchType)
+                  }
+                >
+                  Detail
+                </Button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {batches.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center text-muted">
-                  Tidak ada data
-                </td>
-              </tr>
-            )}
-            {batches.map((b) => (
-              <tr key={`${b.Tanggal}-${b.Waktu}-${b.batchType}`}>
-                <td>{b.Tanggal}</td>
-                <td>{b.Waktu}</td>
-                <td className="text-center">{b.jumlahLinen}</td>
-                <td className="text-center">{b.batchType}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-outline-primary w-100"
-                    onClick={() => loadDetails(b.Tanggal, b.Waktu, b.batchType)}
-                  >
-                    Detail
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </Table>
 
-      {/* Detail batch */}
       {selected && (
         <>
-          <div className="d-flex justify-content-between align-items-center">
-            <h4>
-              Detail {selected.t} {selected.w} ({selected.type})
-            </h4>
-            <button className="btn btn-success" onClick={handlePrint}>
-              Print / PDF
-            </button>
-          </div>
-
-          <table className="table table-sm table-bordered table-striped align-middle mt-2">
-            <thead className="table-light text-center">
-              <tr>
-                <th>No</th>
-                <th>EPC</th>
-                <th>Tipe</th>
-                <th>Old</th>
-                <th>New</th>
-                <th>Ant</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.length === 0 && (
+          <h5 className="mt-4">
+            Detail {selected.t} {selected.w} ({selected.type})
+          </h5>
+          {details.length > 0 ? (
+            <Table striped bordered hover responsive>
+              <thead>
                 <tr>
-                  <td colSpan={7} className="text-center text-muted">
-                    Tidak ada detail
-                  </td>
+                  <th>UID</th>
+                  <th>Jenis Linen</th>
+                  <th>Status</th>
+                  <th>Antenna</th>
                 </tr>
-              )}
-              {details.map((d, idx) => (
-                <tr key={d.EPC}>
-                  <td className="text-center">{idx + 1}</td>
-                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>{d.EPC}</td>
-                  <td>{d.TipeLinen}</td>
-                  <td>{d.OldStatus}</td>
-                  <td>{d.NewStatus}</td>
-                  <td className="text-center">{d.Antenna}</td>
-                  <td className="text-center">{d.batchType}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {details.map((row, index) => (
+                  <tr key={index}>
+                    <td>{row.uid}</td>
+                    <td>{row.linen}</td>
+                    <td>{row.status}</td>
+                    <td>{row.antenna}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p className="text-muted">Tidak ada detail untuk batch ini.</p>
+          )}
+
+          <Button onClick={handlePrint} variant="success" className="mt-3">
+            Cetak PDF
+          </Button>
         </>
       )}
     </div>

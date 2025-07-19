@@ -235,21 +235,20 @@ app.get('/batch-report/:tanggal/:waktu/:batchType', async (req, res) => {
   const table = isIn ? 'linenbatchdetails_in' : 'linenbatchdetails_out';
 
   const sql = `
-    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
-           EPC,
-           TipeLinen,
-           OldStatus,
-           NewStatus,
-           Type,
-           Antenna,
-           ? AS batchType
+    SELECT 
+      EPC AS uid,
+      TipeLinen AS linen,
+      NewStatus AS status,
+      Antenna,
+      TIME_FORMAT(Waktu, '%H:%i:%s') AS waktu
     FROM ${table}
-    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+    WHERE DATE_FORMAT(Tanggal, '%Y-%m-%d') = ? 
+      AND TIME_FORMAT(Waktu, '%H:%i:%s') = ?
     ORDER BY EPC
   `;
+
   try {
-    const [rows] = await pool.query(sql, [batchType, tanggal, waktu]);
+    const [rows] = await pool.query(sql, [tanggal, waktu]);
     res.json(rows);
   } catch (err) {
     console.error('/batch-report error:', err.message);
