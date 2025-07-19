@@ -1,21 +1,16 @@
-/*  ---------------------------------------------------------------
-    Riwayat.tsx  –  Laporan & Cetak PDF Batch Linen
-    --------------------------------------------------------------- */
 import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 if (!(pdfMake as any).vfs) {
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
 }
 
-/* ── 2.  TYPE DEFINITIONS ────────────────────────────────────── */
 type BatchRow = {
-  Tanggal: string; // ex: 2025‑07‑05
-  Waktu: string; // ex: 14:32:15
+  Tanggal: string;
+  Waktu: string;
   jumlahLinen: number;
+  batchType: string;
 };
 
 type DetailRow = {
@@ -25,17 +20,14 @@ type DetailRow = {
   NewStatus: string;
   Antenna: number;
   Type: string;
+  batchType: string;
 };
 
-/* ── 3.  COMPONENT ───────────────────────────────────────────── */
 export default function Riwayat() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
   const [details, setDetails] = useState<DetailRow[]>([]);
-  const [selected, setSelected] = useState<{ t: string; w: string } | null>(
-    null
-  );
+  const [selected, setSelected] = useState<{ t: string; w: string; type: string } | null>(null);
 
-  /* --- 3A  : ambil daftar batch sekali saat mount -------------- */
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
       .then((r) => r.json())
@@ -43,27 +35,28 @@ export default function Riwayat() {
       .catch(console.error);
   }, []);
 
-  /* --- 3B  : ambil detail batch -------------------------------- */
-  async function loadDetails(t: string, w: string) {
-    try {
-      const encT = encodeURIComponent(t);
-      const encW = encodeURIComponent(w);
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/batch-report/${encT}/${encW}`
-      );
-      const rows: DetailRow[] = await res.json();
-      setDetails(rows);
-      setSelected({ t, w });
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  async function loadDetails(t: string, w: string, type: string) {
+  try {
+    const encT = encodeURIComponent(t);
+    const encW = encodeURIComponent(w);
 
-  /* --- 3C  : cetak / preview PDF ------------------------------- */
+    const endpoint = type === "Dicuci"
+      ? `/batch-report-in/${encT}/${encW}`
+      : `/batch-report-out/${encT}/${encW}`;
+
+    const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`);
+    const rows: DetailRow[] = await res.json();
+    setDetails(rows);
+    setSelected({ t, w, type }); // simpan dengan tipe yang dipilih
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
   function handlePrint() {
     if (!selected) return;
 
-    /* body tabel dengan nomor urut */
     const body = [
       [
         { text: "No", style: "tableHeader" },
@@ -72,7 +65,7 @@ export default function Riwayat() {
         { text: "Status Awal", style: "tableHeader" },
         { text: "Status Akhir", style: "tableHeader" },
         { text: "Antenna", style: "tableHeader" },
-        { text: "Jenis Batch", style: "tableHeader" },
+        { text: "Status", style: "tableHeader" },
       ],
       ...details.map((d, idx) => [
         idx + 1,
@@ -81,26 +74,21 @@ export default function Riwayat() {
         d.OldStatus,
         d.NewStatus,
         d.Antenna.toString(),
-        d.Type,
+        d.batchType,
       ]),
     ];
 
     const docDefinition = {
       pageSize: "A4",
       pageOrientation: "landscape",
-      pageMargins: [40, 60, 40, 60], // L,T,R,B
+      pageMargins: [40, 60, 40, 60],
       content: [
         { text: "RS Cileungsi", style: "mainTitle" },
+        { text: "Laporan Batch Linen", style: "subTitle", margin: [0, 2, 0, 2] },
         {
-          text: "Laporan Batch Linen",
-          style: "subTitle",
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}\n\n`,
+          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}    Jenis : ${selected.type}\n\n`,
           style: "info",
         },
-
         {
           table: {
             headerRows: 1,
@@ -109,7 +97,6 @@ export default function Riwayat() {
           },
           layout: "lightHorizontalLines",
         },
-
         {
           text: `\nTotal Linen : ${details.length}`,
           alignment: "right",
@@ -117,59 +104,52 @@ export default function Riwayat() {
           margin: [0, 8, 0, 0],
         },
       ],
-
       styles: {
-        mainTitle: {
-          fontSize: 18,
-          bold: true,
-          alignment: "center",
-          margin: [0, 0, 0, 4],
-        },
+        mainTitle: { fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 4] },
         subTitle: { fontSize: 15, bold: true, alignment: "center" },
         info: { fontSize: 11, alignment: "center", margin: [0, 0, 0, 10] },
         tableHeader: { bold: true, fillColor: "#eeeeee", fontSize: 10 },
       },
-
       defaultStyle: { fontSize: 9 },
     };
 
-    pdfMake.createPdf(docDefinition).open(); // .download('laporan.pdf')
+    pdfMake.createPdf(docDefinition).open();
   }
 
-  /* ── 4.  RENDER ─────────────────────────────────────────────── */
   return (
     <div>
       <h2 className="mb-3">Riwayat Batch &amp; Cetak PDF</h2>
 
-      {/* --- DAFTAR BATCH ---------------------- */}
+      {/* Daftar batch */}
       <div style={{ maxHeight: 620, overflowY: "auto" }} className="mb-4">
         <table className="table table-bordered table-hover align-middle mb-0">
           <thead className="table-primary text-center">
             <tr>
               <th>Tanggal</th>
               <th>Waktu</th>
-              <th>Jumlah Linen</th>
+              <th>Jumlah</th>
+              <th>Status</th>
               <th style={{ width: 90 }}>Detail</th>
             </tr>
           </thead>
           <tbody>
             {batches.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-muted">
+                <td colSpan={5} className="text-center text-muted">
                   Tidak ada data
                 </td>
               </tr>
             )}
-
             {batches.map((b) => (
-              <tr key={`${b.Tanggal}-${b.Waktu}`}>
+              <tr key={`${b.Tanggal}-${b.Waktu}-${b.batchType}`}>
                 <td>{b.Tanggal}</td>
                 <td>{b.Waktu}</td>
                 <td className="text-center">{b.jumlahLinen}</td>
+                <td className="text-center">{b.batchType}</td>
                 <td>
                   <button
                     className="btn btn-sm btn-outline-primary w-100"
-                    onClick={() => loadDetails(b.Tanggal, b.Waktu)}
+                    onClick={() => loadDetails(b.Tanggal, b.Waktu, b.batchType)}
                   >
                     Detail
                   </button>
@@ -180,12 +160,12 @@ export default function Riwayat() {
         </table>
       </div>
 
-      {/* --- DETAIL BATCH -------------------------------------- */}
+      {/* Detail batch */}
       {selected && (
         <>
           <div className="d-flex justify-content-between align-items-center">
             <h4>
-              Detail&nbsp;&nbsp;{selected.t}&nbsp;{selected.w}
+              Detail {selected.t} {selected.w} ({selected.type})
             </h4>
             <button className="btn btn-success" onClick={handlePrint}>
               Print / PDF
@@ -201,7 +181,7 @@ export default function Riwayat() {
                 <th>Old</th>
                 <th>New</th>
                 <th>Ant</th>
-                <th>Type</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -212,18 +192,15 @@ export default function Riwayat() {
                   </td>
                 </tr>
               )}
-
               {details.map((d, idx) => (
                 <tr key={d.EPC}>
                   <td className="text-center">{idx + 1}</td>
-                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>
-                    {d.EPC}
-                  </td>
+                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>{d.EPC}</td>
                   <td>{d.TipeLinen}</td>
                   <td>{d.OldStatus}</td>
                   <td>{d.NewStatus}</td>
                   <td className="text-center">{d.Antenna}</td>
-                  <td className="text-center">{d.Type}</td>
+                  <td className="text-center">{d.batchType}</td>
                 </tr>
               ))}
             </tbody>

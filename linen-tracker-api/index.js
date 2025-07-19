@@ -227,9 +227,12 @@ app.get('/batch-list', async (_req, res) => {
 });
 
 
-/* GET /batch-report/:tanggal/:waktu */
-app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
-  const { tanggal, waktu } = req.params;
+/* GET /batch-report/:tanggal/:waktu/:batchType */
+app.get('/batch-report/:tanggal/:waktu/:batchType', async (req, res) => {
+  const { tanggal, waktu, batchType } = req.params;
+
+  const isIn = batchType === 'Dicuci';
+  const table = isIn ? 'linenbatchdetails_in' : 'linenbatchdetails_out';
 
   const sql = `
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
@@ -240,28 +243,13 @@ app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
            NewStatus,
            Type,
            Antenna,
-           'Dicuci' AS batchType
-    FROM linenbatchdetails_in
+           ? AS batchType
+    FROM ${table}
     WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
-
-    UNION ALL
-
-    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
-           EPC,
-           TipeLinen,
-           OldStatus,
-           NewStatus,
-           Type,
-           Antenna,
-           'Keluar' AS batchType
-    FROM linenbatchdetails_out
-    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
-
     ORDER BY EPC
   `;
   try {
-    const [rows] = await pool.query(sql, [tanggal, waktu, tanggal, waktu]);
+    const [rows] = await pool.query(sql, [batchType, tanggal, waktu]);
     res.json(rows);
   } catch (err) {
     console.error('/batch-report error:', err.message);
