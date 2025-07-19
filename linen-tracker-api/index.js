@@ -238,8 +238,10 @@ app.get('/batch-report/:tanggal/:waktu/:batchType', async (req, res) => {
     SELECT 
       EPC AS uid,
       TipeLinen AS linen,
-      NewStatus AS status,
+      NewStatus,
+      OldStatus,
       Antenna,
+      Type,
       TIME_FORMAT(Waktu, '%H:%i:%s') AS waktu
     FROM ${table}
     WHERE DATE_FORMAT(Tanggal, '%Y-%m-%d') = ? 
