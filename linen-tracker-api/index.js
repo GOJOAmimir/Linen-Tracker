@@ -141,10 +141,23 @@ app.get('/batches/latest', async (_req, res) => {
       CONCAT(DATE_FORMAT(Tanggal, '%Y-%m-%d'), ' ', TIME_FORMAT(Waktu, '%H:%i')) AS waktu,
       COUNT(*) AS totalLinen,
       MAX(NewStatus) AS status,
+      'Dicuci' AS batchType,
       CONCAT(DATE_FORMAT(Tanggal, '%Y%m%d'), LPAD(HOUR(Waktu), 2, '0'), LPAD(MINUTE(Waktu), 2, '0')) AS id
-    FROM linenbatchdetails
+    FROM linenbatchdetails_in
     GROUP BY Tanggal, Waktu
-    ORDER BY Tanggal DESC, Waktu DESC
+
+    UNION ALL
+
+    SELECT 
+      CONCAT(DATE_FORMAT(Tanggal, '%Y-%m-%d'), ' ', TIME_FORMAT(Waktu, '%H:%i')) AS waktu,
+      COUNT(*) AS totalLinen,
+      MAX(NewStatus) AS status,
+      'Keluar' AS batchType,
+      CONCAT(DATE_FORMAT(Tanggal, '%Y%m%d'), LPAD(HOUR(Waktu), 2, '0'), LPAD(MINUTE(Waktu), 2, '0')) AS id
+    FROM linenbatchdetails_out
+    GROUP BY Tanggal, Waktu
+
+    ORDER BY waktu DESC
     LIMIT 9
   `;
   try {
@@ -156,19 +169,26 @@ app.get('/batches/latest', async (_req, res) => {
   }
 });
 
+
 /* GET /batch-summary/:tanggal/:waktu */
 app.get('/batch-summary/:tanggal/:waktu', async (req, res) => {
   const { tanggal, waktu } = req.params;
+
   const sql = `
-    SELECT TipeLinen, COUNT(*) AS Jumlah
-    FROM   linenbatchdetails
-    WHERE  DATE_FORMAT(Tanggal,'%Y-%m-%d') = ?
-      AND  TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+    SELECT TipeLinen, COUNT(*) AS Jumlah, 'Dicuci' AS batchType
+    FROM linenbatchdetails_in
+    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
     GROUP BY TipeLinen
-    ORDER BY Jumlah DESC
+
+    UNION ALL
+
+    SELECT TipeLinen, COUNT(*) AS Jumlah, 'Keluar' AS batchType
+    FROM linenbatchdetails_out
+    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+    GROUP BY TipeLinen
   `;
   try {
-    const [rows] = await pool.query(sql, [tanggal, waktu]);
+    const [rows] = await pool.query(sql, [tanggal, waktu, tanggal, waktu]);
     res.json(rows);
   } catch (err) {
     console.error('/batch-summary error:', err.message);
@@ -176,17 +196,26 @@ app.get('/batch-summary/:tanggal/:waktu', async (req, res) => {
   }
 });
 
-
-
 /* GET /batch-list */
 app.get('/batch-list', async (_req, res) => {
   const sql = `
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu  ,'%H:%i:%s') AS Waktu,
-           COUNT(*)                        AS jumlahLinen
-    FROM   linenbatchdetails
-    GROUP  BY Tanggal, Waktu
-    ORDER  BY Tanggal DESC, Waktu DESC
+           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
+           COUNT(*) AS jumlahLinen,
+           'Dicuci' AS batchType
+    FROM linenbatchdetails_in
+    GROUP BY Tanggal, Waktu
+
+    UNION ALL
+
+    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
+           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
+           COUNT(*) AS jumlahLinen,
+           'Keluar' AS batchType
+    FROM linenbatchdetails_out
+    GROUP BY Tanggal, Waktu
+
+    ORDER BY Tanggal DESC, Waktu DESC
   `;
   try {
     const [rows] = await pool.query(sql);
@@ -197,32 +226,49 @@ app.get('/batch-list', async (_req, res) => {
   }
 });
 
+
 /* GET /batch-report/:tanggal/:waktu */
 app.get('/batch-report/:tanggal/:waktu', async (req, res) => {
   const { tanggal, waktu } = req.params;
 
   const sql = `
     SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu  ,'%H:%i:%s') AS Waktu,
+           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
            EPC,
            TipeLinen,
            OldStatus,
            NewStatus,
            Type,
-           Antenna
-    FROM   linenbatchdetails
-    WHERE  DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? 
-      AND  TIME_FORMAT(Waktu  ,'%H:%i:%s') = ?
-    ORDER  BY EPC
+           Antenna,
+           'Dicuci' AS batchType
+    FROM linenbatchdetails_in
+    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+
+    UNION ALL
+
+    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
+           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
+           EPC,
+           TipeLinen,
+           OldStatus,
+           NewStatus,
+           Type,
+           Antenna,
+           'Keluar' AS batchType
+    FROM linenbatchdetails_out
+    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
+
+    ORDER BY EPC
   `;
   try {
-    const [rows] = await pool.query(sql, [tanggal, waktu]);
+    const [rows] = await pool.query(sql, [tanggal, waktu, tanggal, waktu]);
     res.json(rows);
   } catch (err) {
     console.error('/batch-report error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 /*───────────────────────────────────────────────────────────────*/
 /* 4. Start server                                              */

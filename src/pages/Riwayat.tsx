@@ -87,7 +87,7 @@ export default function Riwayat() {
 
     const docDefinition = {
       pageSize: "A4",
-      pageOrientation: "potrait",
+      pageOrientation: "landscape",
       pageMargins: [40, 60, 40, 60], // L,T,R,B
       content: [
         { text: "RS Cileungsi", style: "mainTitle" },
