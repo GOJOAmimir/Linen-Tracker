@@ -4,10 +4,13 @@ import {
   BsBoxArrowRight,
   BsExclamationTriangleFill,
 } from "react-icons/bs";
+import { LuLayers } from "react-icons/lu";
+
 
 export type StatusCounts = {
   kotor: number;
   dicuci: number;
+  bersih: number;
   keluar: number;
   hilang: number;
 };
@@ -21,71 +24,77 @@ export default function StatusSummary({ counts }: Props) {
     {
       label: "Kotor",
       count: counts.kotor,
-      icon: <BsTrashFill size={110} />,
+      icon: <BsTrashFill size={70} />,
       color: "danger",
     },
     {
       label: "Dicuci",
       count: counts.dicuci,
-      icon: <BsDropletHalf size={110} />,
+      icon: <BsDropletHalf size={70} />,
       color: "warning",
+    },
+    {
+      label: "Bersih",
+      count: counts.bersih,
+      icon: <LuLayers size={70} />,
+      color: "info",
     },
     {
       label: "Keluar",
       count: counts.keluar,
-      icon: <BsBoxArrowRight size={110} />,
+      icon: <BsBoxArrowRight size={70} />,
       color: "success",
     },
     {
       label: "Hilang",
       count: counts.hilang,
-      icon: <BsExclamationTriangleFill size={110} />,
+      icon: <BsExclamationTriangleFill size={70} />,
       color: "secondary",
     },
   ];
 
   return (
-    <div className="row">
-      {cardData.map((item) => (
-        <div className="col-6 col-md-3 mb-4" key={item.label}>
-          <div
-            className={`card border-0 text-white bg-${item.color}`}
-            style={{
-              borderRadius: "1rem",
-              height: "160px",
-              padding: "1rem 1.2rem",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "start",
-              justifyContent: "space-between",
-            }}
-          >
-            <div className="d-flex justify-content-between w-100 align-items-center">
-              <span
-                style={{
-                  fontSize: "4.5rem",
-                  fontWeight: 900,
-                  fontFamily: "'Segoe UI', monospace",
-                }}
-              >
-                {item.count}
-              </span>
-              {item.icon}
-            </div>
-            <p
-              className="text-white mb-0"
+  <div className="d-flex w-100 gap-3 flex-wrap">
+    {cardData.map((item) => (
+      <div key={item.label} style={{ flex: 1, minWidth: "150px" }}>
+        <div
+          className={`card border-0 text-white bg-${item.color}`}
+          style={{
+            borderRadius: "1rem",
+            height: "120px",
+            padding: "1rem 1.2rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "start",
+            justifyContent: "space-between",
+          }}
+        >
+          <div className="d-flex justify-content-between w-100 align-items-center">
+            <span
               style={{
-                fontWeight: 500,
-                marginTop: "Left",
-                fontSize: "1.3rem",
-                letterSpacing: "0.3px",
+                fontSize: "3.5rem",
+                fontWeight: 900,
+                fontFamily: "'Segoe UI', monospace",
               }}
             >
-              {item.label}
-            </p>
+              {item.count}
+            </span>
+            {item.icon}
           </div>
+          <p
+            className="text-white mb-0"
+            style={{
+              fontWeight: 500,
+              fontSize: "0.7rem",
+              letterSpacing: "2px",
+            }}
+          >
+            {item.label}
+          </p>
         </div>
-      ))}
-    </div>
-  );
+      </div>
+    ))}
+  </div>
+);
+
 }

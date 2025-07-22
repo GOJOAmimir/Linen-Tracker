@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 type BatchListEntry = {
   Tanggal: string;
   Waktu: string;
+  batchType: string;
   jumlahLinen: number;
 };
 
 type LinenEntry = {
-  EPC: string;
-  TipeLinen: string;
+  uid: string;
+  linen: string;
   OldStatus: string;
   NewStatus: string;
   Antenna: number;
@@ -20,6 +21,7 @@ export default function BatchInfo() {
   const [selected, setSelected] = useState<{
     tanggal: string;
     waktu: string;
+    type: string;
   } | null>(null);
   const [detailRows, setDetailRows] = useState<LinenEntry[]>([]);
 
@@ -31,24 +33,25 @@ export default function BatchInfo() {
       .catch((e) => console.error("fetch /batch-list", e));
   }, []);
 
-  // Fetch detail
-  const handleLihat = (tgl: string, wkt: string) => {
-    const url = `${
-      import.meta.env.VITE_API_URL
-    }/batch-report/${encodeURIComponent(tgl)}/${encodeURIComponent(wkt)}`;
-    fetch(url)
-      .then((r) => r.json())
-      .then((rows) => {
-        setSelected({ tanggal: tgl, waktu: wkt });
-        setDetailRows(rows);
-      })
-      .catch((e) => console.error("fetch /batch-report", e));
-  };
+  const handleLihat = (tgl: string, wkt: string, batchType: string) => {
+  const url = `${
+    import.meta.env.VITE_API_URL
+  }/batch-report/${encodeURIComponent(tgl)}/${encodeURIComponent(wkt)}/${encodeURIComponent(batchType)}`;
+
+  fetch(url)
+    .then((r) => r.json())
+    .then((rows) => {
+      setSelected({ tanggal: tgl, waktu: wkt, type: batchType });
+      setDetailRows(rows);
+    })
+    .catch((e) => console.error("fetch /batch-report", e));
+};
+
 
   const getTipeSummary = (): Record<string, number> => {
     const result: Record<string, number> = {};
     detailRows.forEach((r) => {
-      result[r.TipeLinen] = (result[r.TipeLinen] || 0) + 1;
+      result[r.linen] = (result[r.linen] || 0) + 1;
     });
     return result;
   };
@@ -93,7 +96,7 @@ export default function BatchInfo() {
                 <td>
                   <button
                     className="btn btn-sm btn-primary w-100"
-                    onClick={() => handleLihat(b.Tanggal, b.Waktu)}
+                    onClick={() => handleLihat(b.Tanggal, b.Waktu, b.batchType)}
                   >
                     Lihat
                   </button>

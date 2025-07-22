@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+const rowHeight = 28;
 
 type Batch = {
   id: number;
@@ -17,28 +18,28 @@ export default function BatchSummary() {
       .catch((err) => console.error("Fetch batch summary error:", err));
   }, []);
 
-  return (
+ return (
     <div className="card shadow-sm h-100 d-flex flex-column">
       <div className="card-header bg-white">
         <h5 className="mb-0">Batch Terbaru</h5>
       </div>
       <div className="card-body p-0">
-        <table className="table table-sm mb-0">
+        <table className="table table-sm mb-0" style={{ fontSize: "0.85rem" }}>
           <thead className="table-light">
             <tr>
-              <th>ID Batch</th>
-              <th>Waktu</th>
-              <th>Total Linen</th>
-              <th>Status</th>
+              <th style={{ padding: "4px 8px" }}>ID Batch</th>
+              <th style={{ padding: "4px 8px" }}>Waktu</th>
+              <th style={{ padding: "4px 8px" }}>Total Linen</th>
+              <th style={{ padding: "4px 8px" }}>Status</th>
             </tr>
           </thead>
           <tbody>
             {batches.map((batch) => (
-              <tr key={batch.id}>
-                <td>#{batch.id}</td>
-                <td>{batch.waktu}</td>
-                <td>{batch.totalLinen}</td>
-                <td>
+              <tr key={batch.id} style={{ height: `${rowHeight}px` }}>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>#{batch.id}</td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>{batch.waktu}</td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>{batch.totalLinen}</td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>
                   <span
                     className={`badge ${
                       batch.status === "Keluar"
@@ -51,9 +52,10 @@ export default function BatchSummary() {
                 </td>
               </tr>
             ))}
+
             {batches.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-center text-muted py-3">
+              <tr style={{ height: `${rowHeight}px` }}>
+                <td colSpan={4} className="text-center text-muted" style={{ padding: "4px 8px" }}>
                   Tidak ada data batch
                 </td>
               </tr>

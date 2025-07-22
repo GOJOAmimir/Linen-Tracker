@@ -89,7 +89,6 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
         d.NewStatus,
         d.Antenna.toString(),
         d.Type,
-        d.batchType,
       ]),
     ];
 

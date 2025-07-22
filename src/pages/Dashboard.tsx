@@ -8,6 +8,7 @@ type Props = {
   statusCounts: {
     kotor: number;
     dicuci: number;
+    bersih: number;
     hilang: number;
     keluar: number;
   };

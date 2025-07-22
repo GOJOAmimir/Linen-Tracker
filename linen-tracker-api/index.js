@@ -103,7 +103,7 @@ app.get('/status-summary', async (_req, res) => {
     const [rows] = await pool.query(sql);
 
     /* Susun format tetap */
-    const result = { kotor: 0, dicuci: 0, keluar: 0, hilang: 0 };
+    const result = { kotor: 0, dicuci: 0, bersih: 0, keluar: 0, hilang: 0 };
     rows.forEach(r => {
       const key = (r.Status || '').toLowerCase();
       if (result[key] !== undefined) result[key] = r.count;

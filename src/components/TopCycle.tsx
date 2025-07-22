@@ -49,7 +49,7 @@ export default function TopCycles() {
                         : linen.Status === "Hilang"
                         ? "bg-danger"
                         : linen.Status === "Dicuci"
-                        ? "bg-info text-dark"
+                        ? "bg-warning text-dark"
                         : "bg-secondary"
                     }`}
                   >
