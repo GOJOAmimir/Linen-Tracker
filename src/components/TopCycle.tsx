@@ -14,7 +14,13 @@ export default function TopCycles() {
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/linen/top-cycles`)
       .then((res) => res.json())
-      .then(setTopLinen)
+      .then((resJson) => {
+        if (resJson.success) {
+          setTopLinen(resJson.data);
+        } else {
+          console.error("API failed:", resJson.message);
+        }
+      })
       .catch((err) => console.error("Fetch top cycles error:", err));
   }, []);
 

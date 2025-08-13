@@ -7,66 +7,63 @@ if (!(pdfMake as any).vfs) {
 }
 
 type BatchRow = {
+  BATCH_IN_ID: string;
   Tanggal: string;
   Waktu: string;
   jumlahLinen: number;
-  batchType: string;
 };
 
 type DetailRow = {
-  uid: string;
-  linen: string;
-  OldStatus: string;
-  NewStatus: string;
-  Antenna: number;
-  Type: string;
-  batchType: string;
+  LINEN_ID: string;
+  LINEN_TYPE: string;
+  Status: string;
+  LINEN_MAX_CYCLE: string;
+  LINEN_TOTAL_WASH: string;
 };
 
-export default function Riwayat() {
+export default function RiwayatRegister() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
   const [details, setDetails] = useState<DetailRow[]>([]);
-  const [selected, setSelected] = useState<{ t: string; w: string; type: string } | null>(null);
+  const [selected, setSelected] = useState<{
+    b: string;
+    t: string;
+    w: string;
+  } | null>(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
+    fetch(`${import.meta.env.VITE_API_URL}/batch-list/registered`)
       .then((r) => r.json())
       .then(setBatches)
       .catch(console.error);
   }, []);
 
+  async function loadDetails(batchId: string, tanggal: string, waktu: string) {
+    try {
+      const encBatchID = encodeURIComponent(batchId);
+      const endpoint = `/batch-report/registered/${encBatchID}`;
+      const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`);
 
-async function loadDetails(tanggal: string, waktu: string, batchType: string) {
-  try {
-    const encTanggal = encodeURIComponent(tanggal);
-    const encWaktu = encodeURIComponent(waktu);
-    const encBatchType = encodeURIComponent(batchType);
+      if (!res.ok) {
+        console.error("Fetch failed:", res.status, await res.text());
+        setDetails([]);
+        return;
+      }
 
-    const endpoint = `/batch-report/${encTanggal}/${encWaktu}/${encBatchType}`;
-    const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`);
+      const rows: DetailRow[] = await res.json();
 
-    if (!res.ok) {
-      console.error("Fetch failed:", res.status, await res.text());
+      if (!Array.isArray(rows)) {
+        console.error("Invalid detail data format:", rows);
+        setDetails([]);
+        return;
+      }
+
+      setSelected({ b: batchId, t: tanggal, w: waktu });
+      setDetails(rows);
+    } catch (err) {
+      console.error("Failed to load batch details:", err);
       setDetails([]);
-      return;
     }
-
-    const rows: DetailRow[] = await res.json();
-
-    if (!Array.isArray(rows)) {
-      console.error("Invalid detail data format:", rows);
-      setDetails([]);
-      return;
-    }
-
-    setSelected({ t: tanggal, w: waktu, type: batchType });
-    setDetails(rows);
-  } catch (err) {
-    console.error("Failed to load batch details:", err);
-    setDetails([]);
   }
-}
-
 
   function handlePrint() {
     if (!selected) return;
@@ -76,19 +73,17 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
         { text: "No", style: "tableHeader" },
         { text: "EPC", style: "tableHeader" },
         { text: "Tipe Linen", style: "tableHeader" },
-        { text: "Status Awal", style: "tableHeader" },
-        { text: "Status Akhir", style: "tableHeader" },
-        { text: "Antenna", style: "tableHeader" },
-        { text: "Jenis", style: "tableHeader" },
+        { text: "Status", style: "tableHeader" },
+        { text: "Max Cycle", style: "tableHeader" },
+        { text: "Total Wash", style: "tableHeader" },
       ],
       ...details.map((d, idx) => [
         idx + 1,
-        d.uid,
-        d.linen,
-        d.OldStatus,
-        d.NewStatus,
-        d.Antenna.toString(),
-        d.Type,
+        d.LINEN_ID,
+        d.LINEN_TYPE,
+        (d.Status = "Dicuci"),
+        d.LINEN_MAX_CYCLE.toString(),
+        d.LINEN_TOTAL_WASH.toString(),
       ]),
     ];
 
@@ -98,9 +93,13 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
       pageMargins: [40, 60, 40, 60],
       content: [
         { text: "RS Cileungsi", style: "mainTitle" },
-        { text: "Laporan Batch Linen", style: "subTitle", margin: [0, 2, 0, 2] },
         {
-          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}    Jenis : ${selected.type}\n\n`,
+          text: "Laporan Batch Linen",
+          style: "subTitle",
+          margin: [0, 2, 0, 2],
+        },
+        {
+          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}\n\n`,
           style: "info",
         },
         {
@@ -119,7 +118,12 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
         },
       ],
       styles: {
-        mainTitle: { fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 4] },
+        mainTitle: {
+          fontSize: 18,
+          bold: true,
+          alignment: "center",
+          margin: [0, 0, 0, 4],
+        },
         subTitle: { fontSize: 15, bold: true, alignment: "center" },
         info: { fontSize: 11, alignment: "center", margin: [0, 0, 0, 10] },
         tableHeader: { bold: true, fillColor: "#eeeeee", fontSize: 10 },
@@ -132,17 +136,17 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
 
   return (
     <div>
-      <h2 className="mb-3">Riwayat Batch &amp; Cetak PDF</h2>
+      <h2 className="mb-3">Riwayat Batch Registered &amp; Cetak PDF</h2>
 
       {/* Daftar batch */}
       <div style={{ maxHeight: 620, overflowY: "auto" }} className="mb-4">
         <table className="table table-bordered table-hover align-middle mb-0">
           <thead className="table-primary text-center">
             <tr>
+              <th>BatchID</th>
               <th>Tanggal</th>
               <th>Waktu</th>
               <th>Jumlah</th>
-              <th>Jenis</th>
               <th style={{ width: 90 }}>Detail</th>
             </tr>
           </thead>
@@ -154,17 +158,16 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
                 </td>
               </tr>
             )}
-            {batches.map((b) => (
-              <tr key={`${b.Tanggal}-${b.Waktu}-${b.batchType}`}>
-                <td>{b.Tanggal}</td>
-                <td>{b.Waktu}</td>
-                <td className="text-center">{b.jumlahLinen}</td>
-                <td className="text-center">{b.batchType}</td>
+            {batches.map(({ BATCH_IN_ID, Tanggal, Waktu, jumlahLinen }) => (
+              <tr key={`${BATCH_IN_ID}-${Tanggal}-${Waktu}`}>
+                <td>{BATCH_IN_ID}</td>
+                <td>{Tanggal}</td>
+                <td>{Waktu}</td>
+                <td className="text-center">{jumlahLinen}</td>
                 <td>
                   <button
                     className="btn btn-sm btn-outline-primary w-100"
-                    onClick={() => loadDetails(b.Tanggal, b.Waktu, b.batchType)}
-
+                    onClick={() => loadDetails(BATCH_IN_ID, Tanggal, Waktu)}
                   >
                     Detail
                   </button>
@@ -180,7 +183,7 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
         <>
           <div className="d-flex justify-content-between align-items-center">
             <h4>
-              Detail {selected.t} {selected.w} ({selected.type})
+              Detail {selected.t} {selected.w}
             </h4>
             <button className="btn btn-success" onClick={handlePrint}>
               Print / PDF
@@ -193,10 +196,9 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
                 <th>No</th>
                 <th>EPC</th>
                 <th>Tipe</th>
-                <th>Old</th>
-                <th>New</th>
-                <th>Ant</th>
-                <th>Jenis</th>
+                <th>Status</th>
+                <th>Max Cycle</th>
+                <th>Total Wash</th>
               </tr>
             </thead>
             <tbody>
@@ -208,14 +210,15 @@ async function loadDetails(tanggal: string, waktu: string, batchType: string) {
                 </tr>
               )}
               {details.map((d, idx) => (
-                <tr key={d.uid}>
+                <tr key={d.LINEN_ID}>
                   <td className="text-center">{idx + 1}</td>
-                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>{d.uid}</td>
-                  <td>{d.linen}</td>
-                  <td>{d.OldStatus}</td>
-                  <td>{d.NewStatus}</td>
-                  <td className="text-center">{d.Antenna}</td>
-                  <td className="text-center">{d.Type}</td>
+                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>
+                    {d.LINEN_ID}
+                  </td>
+                  <td>{d.LINEN_TYPE}</td>
+                  <td>{(d.Status = "Dicuci")}</td>
+                  <td className="text-center">{d.LINEN_MAX_CYCLE}</td>
+                  <td className="text-center">{d.LINEN_TOTAL_WASH}</td>
                 </tr>
               ))}
             </tbody>

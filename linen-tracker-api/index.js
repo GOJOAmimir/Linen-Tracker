@@ -1,6 +1,8 @@
 const express = require('express');
 const cors    = require('cors');
 const mysql   = require('mysql2/promise');
+const jwt = require('jsonwebtoken');
+
 require('dotenv').config();
 
 const app = express();
@@ -44,16 +46,57 @@ app.use(express.json());
 /*───────────────────────────────────────────────────────────────*/
 app.get('/', (_req, res) => res.send('Linen Tracker API is running!'));
 
-/* GET /master-linen */
-app.get('/master-linen', async (_req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM linen');
-    res.json(rows);
-  } catch (err) {
-    console.error('/master-linen error:', err.message);
-    res.status(500).json({ error: err.message });
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === 'jomama' && password === 'jomama123') {
+    const token = jwt.sign({ username }, process.env.JWT_SECRET || 'SECRET_KEY', {
+      expiresIn: '1h',
+    });
+
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ success: false, message: 'Login gagal' });
   }
 });
+
+// GET /master-linen
+app.get('/master-linen', async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+        l.LINEN_CREATED_DATE,
+        l.LINEN_ID,
+        l.LINEN_TYPE,
+        l.LINEN_HEIGHT,
+        l.LINEN_WIDTH,
+        l.LINEN_MAX_CYCLE,
+        l.LINEN_DESCRIPTION,
+        l.LINEN_SIZE_CATEGORY,
+        v.LINEN_TOTAL_WASH
+      FROM linens l
+      LEFT JOIN view_item_total_wash v ON l.LINEN_ID = v.LINEN_ID
+    `;
+
+    const [rows] = await pool.query(sql);
+
+    res.status(200).json({
+      success: true,
+      total: rows.length,
+      data: rows,
+    });
+
+  } catch (err) {
+    console.error('GET /master-linen error:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan saat mengambil data linen.',
+      error: err.message,
+    });
+  }
+});
+
+
 
 // POST new linen
 app.post('/master-linen', async (req, res) => {
@@ -92,74 +135,137 @@ app.delete('/master-linen/:epc', async (req, res) => {
   }
 });
 
-/* GET /status-summary */
-app.get('/status-summary', async (_req, res) => {
+// GET /status-summary
+app.get('/status-summary', async (req, res) => {
   const sql = `
-    SELECT Status, COUNT(*) AS count
-    FROM   linen
-    GROUP  BY Status
+    SELECT status, COUNT(*) AS count FROM (
+      -- Bersih = sudah di batch_out_details
+      SELECT 'bersih' AS status
+      FROM batch_out_details
+
+      UNION ALL
+
+      -- Dicuci = ada di processed_item tapi belum di batch_out_details
+      SELECT 'dicuci' AS status
+      FROM processed_items pi
+      WHERE NOT EXISTS (
+        SELECT 1 FROM batch_out_details bod
+        WHERE bod.LINEN_ID = pi.LINEN_ID
+      )
+
+      UNION ALL
+
+      -- Intransit = ada di batch_in_details tapi belum di processed_items
+      SELECT 'intransit' AS status
+      FROM batch_in_details bid
+      WHERE NOT EXISTS (
+        SELECT 1 FROM processed_items pi
+        WHERE pi.LINEN_ID = bid.LINEN_ID
+      )
+    ) AS status_summary
+    GROUP BY status
   `;
+
   try {
     const [rows] = await pool.query(sql);
 
-    /* Susun format tetap */
-    const result = { kotor: 0, dicuci: 0, bersih: 0, keluar: 0, hilang: 0 };
-    rows.forEach(r => {
-      const key = (r.Status || '').toLowerCase();
-      if (result[key] !== undefined) result[key] = r.count;
+    // Inisialisasi dengan 0
+    const result = {
+      intransit: 0,
+      dicuci: 0,
+      bersih: 0,
+      keluar: 0,
+      hilang: 0
+    };
+
+    // Isi dari query
+    rows.forEach(row => {
+      const status = row.status.toLowerCase();
+      if (result.hasOwnProperty(status)) {
+        result[status] = row.count;
+      }
     });
 
-    res.json(result);
-  } catch (err) {
-    console.error('/status-summary error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
+    res.status(200).json({
+      success: true,
+      data: result
+    });
 
-/* GET /linen/top-cycles */
-app.get('/linen/top-cycles', async (_req, res) => {
-  try {
-    const sql = `
-      SELECT EPC, Tipe, cycle, Status, MaxCuci
-      FROM linen
-      ORDER BY cycle DESC
-      LIMIT 5
-    `;
-    const [rows] = await pool.query(sql);
-    res.json(rows);
   } catch (err) {
-    console.error('/linen/top-cycles error:', err.message);
-    res.status(500).json({ error: 'Gagal mengambil data siklus tertinggi' });
+    console.error('GET /status-summary error:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil ringkasan status linen.',
+      error: err.message
+    });
   }
 });
 
 
-/* GET /batches/latest */
-app.get('/batches/latest', async (_req, res) => {
+
+// GET /linen/top-cycles
+app.get('/linen/top-cycles', async (req, res) => {
   const sql = `
     SELECT 
-      CONCAT(DATE_FORMAT(Tanggal, '%Y-%m-%d'), ' ', TIME_FORMAT(Waktu, '%H:%i')) AS waktu,
-      COUNT(*) AS totalLinen,
-      MAX(NewStatus) AS status,
-      'Dicuci' AS batchType,
-      CONCAT(DATE_FORMAT(Tanggal, '%Y%m%d'), LPAD(HOUR(Waktu), 2, '0'), LPAD(MINUTE(Waktu), 2, '0')) AS id
-    FROM linenbatchdetails_in
-    GROUP BY Tanggal, Waktu
-
-    UNION ALL
-
-    SELECT 
-      CONCAT(DATE_FORMAT(Tanggal, '%Y-%m-%d'), ' ', TIME_FORMAT(Waktu, '%H:%i')) AS waktu,
-      COUNT(*) AS totalLinen,
-      MAX(NewStatus) AS status,
-      'Keluar' AS batchType,
-      CONCAT(DATE_FORMAT(Tanggal, '%Y%m%d'), LPAD(HOUR(Waktu), 2, '0'), LPAD(MINUTE(Waktu), 2, '0')) AS id
-    FROM linenbatchdetails_out
-    GROUP BY Tanggal, Waktu
-
-    ORDER BY waktu DESC
-    LIMIT 9
+      LINEN_ID AS EPC, 
+      LINEN_TYPE AS Tipe, 
+      LINEN_TOTAL_WASH AS cycle, 
+      LINEN_MAX_CYCLE AS MaxCuci
+    FROM view_item_total_wash
+    ORDER BY LINEN_TOTAL_WASH DESC
+    LIMIT 5
   `;
+
+  try {
+    const [rows] = await pool.query(sql);
+
+    res.status(200).json({
+      success: true,
+      total: rows.length,
+      data: rows
+    });
+
+  } catch (err) {
+    console.error('GET /linen/top-cycles error:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data linen dengan siklus tertinggi.',
+      error: err.message
+    });
+  }
+});
+
+
+
+
+// GET /batches/latest
+app.get('/batches/latest', async (_req, res) => {
+  const sql = `
+    SELECT * FROM (
+      SELECT 
+        bi.BATCH_IN_ID AS id,
+        bi.BATCH_IN_DATETIME AS waktu,
+        COUNT(bid.LINEN_ID) AS totalLinen,
+        'Dicuci' AS Status
+      FROM batch_in bi
+      LEFT JOIN batch_in_details bid ON bi.BATCH_IN_ID = bid.BATCH_IN_ID
+      GROUP BY bi.BATCH_IN_ID, bi.BATCH_IN_DATETIME
+
+      UNION ALL
+
+      SELECT 
+        bo.BATCH_OUT_ID AS id,
+        bo.BATCH_OUT_DATETIME AS waktu,
+        COUNT(bod.LINEN_ID) AS totalLinen,
+        'Bersih' AS Status
+      FROM batch_out bo
+      LEFT JOIN batch_out_details bod ON bo.BATCH_OUT_ID = bod.BATCH_OUT_ID
+      GROUP BY bo.BATCH_OUT_ID, bo.BATCH_OUT_DATETIME
+    ) AS all_batches
+    ORDER BY waktu DESC
+    LIMIT 8
+  `;
+
   try {
     const [rows] = await pool.query(sql);
     res.json(rows);
@@ -170,99 +276,181 @@ app.get('/batches/latest', async (_req, res) => {
 });
 
 
-/* GET /batch-summary/:tanggal/:waktu */
-app.get('/batch-summary/:tanggal/:waktu', async (req, res) => {
-  const { tanggal, waktu } = req.params;
-
+// GET /linen/daily-in
+app.get('/linen/daily-in', async (_req, res) => {
   const sql = `
-    SELECT TipeLinen, COUNT(*) AS Jumlah, 'Dicuci' AS batchType
-    FROM linenbatchdetails_in
-    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
-    GROUP BY TipeLinen
-
-    UNION ALL
-
-    SELECT TipeLinen, COUNT(*) AS Jumlah, 'Keluar' AS batchType
-    FROM linenbatchdetails_out
-    WHERE DATE_FORMAT(Tanggal,'%Y-%m-%d') = ? AND TIME_FORMAT(Waktu,'%H:%i:%s') = ?
-    GROUP BY TipeLinen
+    SELECT 
+      DATE(bi.BATCH_IN_DATETIME) AS tanggal,
+      COUNT(bid.LINEN_ID) AS jumlah
+    FROM batch_in bi
+    JOIN batch_in_details bid ON bi.BATCH_IN_ID = bid.BATCH_IN_ID
+    GROUP BY DATE(bi.BATCH_IN_DATETIME)
+    ORDER BY tanggal DESC
+    LIMIT 7
   `;
+
   try {
-    const [rows] = await pool.query(sql, [tanggal, waktu, tanggal, waktu]);
-    res.json(rows);
+    const [rows] = await pool.query(sql);
+    res.status(200).json({
+      success: true,
+      data: rows.reverse() // agar urutan tanggal lama ke baru
+    });
   } catch (err) {
-    console.error('/batch-summary error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('GET /linen/daily-in error:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data jumlah linen per hari.',
+      error: err.message
+    });
   }
 });
 
-/* GET /batch-list */
-app.get('/batch-list', async (_req, res) => {
+
+
+// GET /batch-list/registered
+app.get('/batch-list/registered', async (_req, res) => {
   const sql = `
-    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
-           COUNT(*) AS jumlahLinen,
-           'Dicuci' AS batchType
-    FROM linenbatchdetails_in
-    GROUP BY Tanggal, Waktu
-
-    UNION ALL
-
-    SELECT DATE_FORMAT(Tanggal,'%Y-%m-%d') AS Tanggal,
-           TIME_FORMAT(Waktu,'%H:%i:%s') AS Waktu,
-           COUNT(*) AS jumlahLinen,
-           'Keluar' AS batchType
-    FROM linenbatchdetails_out
-    GROUP BY Tanggal, Waktu
-
-    ORDER BY Tanggal DESC, Waktu DESC
+    SELECT 
+      bo.BATCH_IN_ID,
+      DATE_FORMAT(bo.BATCH_IN_DATETIME, '%Y-%m-%d') AS Tanggal,
+      TIME_FORMAT(bo.BATCH_IN_DATETIME, '%H:%i:%s') AS Waktu,
+      COUNT(bod.LINEN_ID) AS jumlahLinen
+    FROM batch_in bo
+    LEFT JOIN batch_in_details bod ON bo.BATCH_IN_ID = bod.BATCH_IN_ID
+    GROUP BY bo.BATCH_IN_ID, bo.BATCH_IN_DATETIME
+    ORDER BY bo.BATCH_IN_DATETIME DESC
   `;
+
   try {
     const [rows] = await pool.query(sql);
     res.json(rows);
   } catch (err) {
-    console.error('/batch-list error:', err.message);
+    console.error('/batch-list/registered error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-
-/* GET /batch-report/:tanggal/:waktu/:batchType */
-app.get('/batch-report/:tanggal/:waktu/:batchType', async (req, res) => {
-  const { tanggal, waktu, batchType } = req.params;
-
-  const isIn = batchType === 'Dicuci';
-  const table = isIn ? 'linenbatchdetails_in' : 'linenbatchdetails_out';
-
+// GET /batch-list/finished
+app.get('/batch-list/finished', async (_req, res) => {
   const sql = `
     SELECT 
-      EPC AS uid,
-      TipeLinen AS linen,
-      NewStatus,
-      OldStatus,
-      Antenna,
-      Type,
-      TIME_FORMAT(Waktu, '%H:%i:%s') AS waktu
-    FROM ${table}
-    WHERE DATE_FORMAT(Tanggal, '%Y-%m-%d') = ? 
-      AND TIME_FORMAT(Waktu, '%H:%i:%s') = ?
-    ORDER BY EPC
+      bo.BATCH_OUT_ID,
+      DATE_FORMAT(bo.BATCH_OUT_DATETIME, '%Y-%m-%d') AS Tanggal,
+      TIME_FORMAT(bo.BATCH_OUT_DATETIME, '%H:%i:%s') AS Waktu,
+      COUNT(bod.LINEN_ID) AS jumlahLinen
+    FROM batch_out bo
+    LEFT JOIN batch_out_details bod ON bo.BATCH_OUT_ID = bod.BATCH_OUT_ID
+    GROUP BY bo.BATCH_OUT_ID, bo.BATCH_OUT_DATETIME
+    ORDER BY bo.BATCH_OUT_DATETIME DESC
   `;
 
   try {
-    const [rows] = await pool.query(sql, [tanggal, waktu]);
+    const [rows] = await pool.query(sql);
     res.json(rows);
   } catch (err) {
-    console.error('/batch-report error:', err.message);
+    console.error('/batch-list/finished error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
+
+app.get('/batch-status', async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+          bi.BATCH_IN_ID AS batch_id,
+          bi.BATCH_IN_DATETIME AS waktu_mulai,
+          bo.BATCH_OUT_DATETIME AS waktu_selesai,
+          CASE 
+              WHEN bo.BATCH_OUT_ID IS NOT NULL THEN 'FINISHED'
+              ELSE 'IN PROGRESS'
+          END AS status
+      FROM BATCH_IN bi
+      LEFT JOIN BATCH_OUT bo 
+          ON bi.BATCH_IN_ID = bo.BATCH_OUT_ID
+      ORDER BY bi.BATCH_IN_DATETIME DESC
+    `;
+    
+    const [rows] = await pool.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal mengambil data batch' });
+  }
+});
+
+
+// GET /batch-report/:batchOutId
+app.get('/batch-report/finished/:batchOutId', async (req, res) => {
+  const { batchOutId } = req.params;
+
+  const sql = `
+    SELECT 
+      bod.BATCH_OUT_ID,
+      DATE_FORMAT(bo.BATCH_OUT_DATETIME, '%Y-%m-%d') AS Tanggal,
+      TIME_FORMAT(bo.BATCH_OUT_DATETIME, '%H:%i:%s') AS Waktu,
+      bod.LINEN_ID,
+      l.LINEN_TYPE,
+      v.LINEN_MAX_CYCLE,
+      v.LINEN_TOTAL_WASH
+    FROM batch_out_details bod
+    JOIN batch_out bo ON bod.BATCH_OUT_ID = bo.BATCH_OUT_ID
+    LEFT JOIN linens l ON bod.LINEN_ID = l.LINEN_ID
+    LEFT JOIN view_item_total_wash v ON bod.LINEN_ID = v.LINEN_ID
+    WHERE bod.BATCH_OUT_ID = ?
+    ORDER BY bod.LINEN_ID ASC
+  `;
+
+  try {
+    const [rows] = await pool.query(sql, [batchOutId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('/batch-report/finished error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /batch-report/:batchInId
+app.get('/batch-report/registered/:batchInId', async (req, res) => {
+  const { batchInId } = req.params;
+
+  const sql = `
+    SELECT 
+      bod.BATCH_IN_ID,
+      DATE_FORMAT(bo.BATCH_IN_DATETIME, '%Y-%m-%d') AS Tanggal,
+      TIME_FORMAT(bo.BATCH_IN_DATETIME, '%H:%i:%s') AS Waktu,
+      bod.LINEN_ID,
+      l.LINEN_TYPE,
+      v.LINEN_MAX_CYCLE,
+      v.LINEN_TOTAL_WASH
+    FROM batch_in_details bod
+    JOIN batch_in bo ON bod.BATCH_IN_ID = bo.BATCH_IN_ID
+    LEFT JOIN linens l ON bod.LINEN_ID = l.LINEN_ID
+    LEFT JOIN view_item_total_wash v ON bod.LINEN_ID = v.LINEN_ID
+    WHERE bod.BATCH_IN_ID = ?
+    ORDER BY bod.LINEN_ID ASC
+  `;
+
+  try {
+    const [rows] = await pool.query(sql, [batchInId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('/batch-report/registered error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+
+
 
 
 /*───────────────────────────────────────────────────────────────*/
 /* 4. Start server                                              */
 /*───────────────────────────────────────────────────────────────*/
-const PORT = process.env.PORT || 8080;   // Railway inject PORT sendiri
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀  API server listening on port ${PORT}`);
 });

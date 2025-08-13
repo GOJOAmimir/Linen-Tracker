@@ -20,16 +20,16 @@ export default function LinenByDay() {
   const [data, setData] = useState<DataEntry[]>([]);
 
   useEffect(() => {
-    // Placeholder data, ganti nanti dengan fetch dari API
-    const dummyData: DataEntry[] = [
-      { tanggal: "2025-07-04", jumlah: 38 },
-      { tanggal: "2025-07-05", jumlah: 42 },
-      { tanggal: "2025-07-06", jumlah: 25 },
-      { tanggal: "2025-07-07", jumlah: 30 },
-      { tanggal: "2025-07-08", jumlah: 45 },
-      { tanggal: "2025-07-09", jumlah: 60 },
-    ];
-    setData(dummyData);
+    fetch(`${import.meta.env.VITE_API_URL}/linen/daily-in`)
+      .then((res) => res.json())
+      .then((resJson) => {
+        if (resJson.success && Array.isArray(resJson.data)) {
+          setData(resJson.data);
+        } else {
+          console.warn("Unexpected daily-in response", resJson);
+        }
+      })
+      .catch((err) => console.error("Fetch daily-in error:", err));
   }, []);
 
   const chartData = {

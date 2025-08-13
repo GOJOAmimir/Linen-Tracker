@@ -6,7 +6,7 @@ import { BsHouseDoorFill } from "react-icons/bs";
 
 type Props = {
   statusCounts: {
-    kotor: number;
+    intransit: number;
     dicuci: number;
     bersih: number;
     hilang: number;

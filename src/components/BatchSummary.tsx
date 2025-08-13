@@ -5,7 +5,7 @@ type Batch = {
   id: number;
   waktu: string;
   totalLinen: number;
-  status: string;
+  Status: string;
 };
 
 export default function BatchSummary() {
@@ -18,7 +18,7 @@ export default function BatchSummary() {
       .catch((err) => console.error("Fetch batch summary error:", err));
   }, []);
 
- return (
+  return (
     <div className="card shadow-sm h-100 d-flex flex-column">
       <div className="card-header bg-white">
         <h5 className="mb-0">Batch Terbaru</h5>
@@ -36,18 +36,24 @@ export default function BatchSummary() {
           <tbody>
             {batches.map((batch) => (
               <tr key={batch.id} style={{ height: `${rowHeight}px` }}>
-                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>#{batch.id}</td>
-                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>{batch.waktu}</td>
-                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>{batch.totalLinen}</td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>
+                  #{batch.id}
+                </td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>
+                  {batch.waktu}
+                </td>
+                <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>
+                  {batch.totalLinen}
+                </td>
                 <td style={{ padding: "4px 8px", verticalAlign: "middle" }}>
                   <span
                     className={`badge ${
-                      batch.status === "Keluar"
+                      batch.Status === "Bersih"
                         ? "bg-success"
                         : "bg-warning text-dark"
                     }`}
                   >
-                    {batch.status}
+                    {batch.Status}
                   </span>
                 </td>
               </tr>
@@ -55,7 +61,11 @@ export default function BatchSummary() {
 
             {batches.length === 0 && (
               <tr style={{ height: `${rowHeight}px` }}>
-                <td colSpan={4} className="text-center text-muted" style={{ padding: "4px 8px" }}>
+                <td
+                  colSpan={4}
+                  className="text-center text-muted"
+                  style={{ padding: "4px 8px" }}
+                >
                   Tidak ada data batch
                 </td>
               </tr>

@@ -1,57 +1,50 @@
 import { useEffect, useState } from "react";
 
 type BatchListEntry = {
-  Tanggal: string;
-  Waktu: string;
-  batchType: string;
-  jumlahLinen: number;
+  batch_id: string;
+  status: string;
+  waktu_mulai: string;
+  waktu_selesai: string;
 };
 
 type LinenEntry = {
-  uid: string;
-  linen: string;
-  OldStatus: string;
-  NewStatus: string;
-  Antenna: number;
-  Type: string;
+  LINEN_ID: string;
+  LINEN_TYPE: string;
+  tanggal: string;
+  Status: string;
 };
 
-export default function BatchInfo() {
+export default function BatchSelesaiInfo() {
   const [batchList, setBatchList] = useState<BatchListEntry[]>([]);
-  const [selected, setSelected] = useState<{
-    tanggal: string;
-    waktu: string;
-    type: string;
-  } | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [detailRows, setDetailRows] = useState<LinenEntry[]>([]);
 
   // Fetch batch list
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/batch-list`)
+    fetch(`${import.meta.env.VITE_API_URL}/batch-status`)
       .then((r) => r.json())
       .then((data) => setBatchList(data.slice(0, 12)))
       .catch((e) => console.error("fetch /batch-list", e));
   }, []);
 
-  const handleLihat = (tgl: string, wkt: string, batchType: string) => {
-  const url = `${
-    import.meta.env.VITE_API_URL
-  }/batch-report/${encodeURIComponent(tgl)}/${encodeURIComponent(wkt)}/${encodeURIComponent(batchType)}`;
+  const handleLihat = (BATCH_OUT_ID: string) => {
+    const url = `${
+      import.meta.env.VITE_API_URL
+    }/batch-report/${encodeURIComponent(BATCH_OUT_ID)}`;
 
-  fetch(url)
-    .then((r) => r.json())
-    .then((rows) => {
-      setSelected({ tanggal: tgl, waktu: wkt, type: batchType });
-      setDetailRows(rows);
-    })
-    .catch((e) => console.error("fetch /batch-report", e));
-};
-
+    fetch(url)
+      .then((r) => r.json())
+      .then((rows) => {
+        setSelected(BATCH_OUT_ID);
+        setDetailRows(rows);
+      })
+      .catch((e) => console.error("fetch /batch-report", e));
+  };
 
   const getTipeSummary = (): Record<string, number> => {
     const result: Record<string, number> = {};
     detailRows.forEach((r) => {
-      result[r.linen] = (result[r.linen] || 0) + 1;
+      result[r.LINEN_TYPE] = (result[r.LINEN_TYPE] || 0) + 1;
     });
     return result;
   };
@@ -59,7 +52,7 @@ export default function BatchInfo() {
   const getStatusTransisiSummary = (): Record<string, number> => {
     const result: Record<string, number> = {};
     detailRows.forEach((r) => {
-      const key = `${r.OldStatus} → ${r.NewStatus}`;
+      const key = `DICUCI → BERSIH`;
       result[key] = (result[key] || 0) + 1;
     });
     return result;
@@ -74,29 +67,31 @@ export default function BatchInfo() {
         <table className="table table-bordered table-hover align-middle mb-0">
           <thead className="table-primary text-center">
             <tr>
-              <th>Tanggal</th>
-              <th>Waktu</th>
-              <th>Jumlah Linen</th>
+              <th>Batch ID</th>
+              <th>Waktu Mulai</th>
+              <th>Waktu Selesai</th>
+              <th>Status</th>
               <th style={{ width: 90 }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {batchList.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-muted">
+                <td colSpan={3} className="text-center text-muted">
                   Tidak ada batch.
                 </td>
               </tr>
             )}
             {batchList.map((b) => (
-              <tr key={`${b.Tanggal}-${b.Waktu}`}>
-                <td>{b.Tanggal}</td>
-                <td>{b.Waktu}</td>
-                <td className="text-center">{b.jumlahLinen}</td>
+              <tr key={b.batch_id}>
+                <td>{b.batch_id}</td>
+                <td>{b.waktu_mulai}</td>
+                <td>{b.waktu_selesai}</td>
+                <td className="text-center">{b.status}</td>
                 <td>
                   <button
                     className="btn btn-sm btn-primary w-100"
-                    onClick={() => handleLihat(b.Tanggal, b.Waktu, b.batchType)}
+                    onClick={() => handleLihat(b.batch_id)}
                   >
                     Lihat
                   </button>
@@ -111,9 +106,7 @@ export default function BatchInfo() {
       {selected && (
         <div className="card shadow-sm">
           <div className="card-header bg-light">
-            <strong>
-              Batch {selected.tanggal} {selected.waktu}
-            </strong>
+            <strong>Batch {selected}</strong>
           </div>
           <div className="card-body">
             {/* Ringkasan tipe linen */}
@@ -133,16 +126,16 @@ export default function BatchInfo() {
               )}
             </div>
 
-            {/* Ringkasan transisi status */}
-            <h6 className="mb-3">Status Transisi</h6>
+            {/* Ringkasan status */}
+            <h6 className="mb-3">Status Linen</h6>
             <ul className="list-group list-group-flush">
               {Object.entries(getStatusTransisiSummary()).map(
-                ([transisi, count]) => (
+                ([status, count]) => (
                   <li
-                    key={transisi}
+                    key={status}
                     className="list-group-item d-flex justify-content-between"
                   >
-                    <span>{transisi}</span>
+                    <span>{status}</span>
                     <span className="badge bg-secondary">{count}</span>
                   </li>
                 )
