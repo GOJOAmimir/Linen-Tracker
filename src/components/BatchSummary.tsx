@@ -49,7 +49,7 @@ export default function BatchSummary() {
                   <span
                     className={`badge ${
                       batch.Status === "Bersih"
-                        ? "bg-success"
+                        ? "bg-info"
                         : "bg-warning text-dark"
                     }`}
                   >

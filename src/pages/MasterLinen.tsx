@@ -23,6 +23,7 @@ type Linen = {
   LINEN_MAX_CYCLE: number;
   LINEN_TOTAL_WASH: number;
   LINEN_DESCRIPTION: string;
+  LINEN_STATUS: string;
 };
 
 export default function MasterLinen() {
@@ -198,6 +199,7 @@ export default function MasterLinen() {
 
     { accessorKey: "LINEN_DESCRIPTION", header: "Deskripsi" },
     { accessorKey: "LINEN_CREATED_DATE", header: "Tanggal Input" },
+    { accessorKey: "LINEN_STATUS", header: "Status" },
   ];
 
   const table = useReactTable({

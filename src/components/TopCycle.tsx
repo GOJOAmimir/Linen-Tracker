@@ -50,10 +50,10 @@ export default function TopCycles() {
                 <td className="text-center">
                   <span
                     className={`badge ${
-                      linen.Status === "Keluar"
+                      linen.Status === "Intransit"
                         ? "bg-success"
-                        : linen.Status === "Hilang"
-                        ? "bg-danger"
+                        : linen.Status === "Bersih"
+                        ? "bg-info"
                         : linen.Status === "Dicuci"
                         ? "bg-warning text-dark"
                         : "bg-secondary"

@@ -99,7 +99,6 @@ export default function BatchSelesaiInfo() {
         );
       }
 
-      // coba generic forms (in case API shape berbeda)
       endpoints.push(
         `${import.meta.env.VITE_API_URL}/batch-report?batchId=${enc}`,
         `${import.meta.env.VITE_API_URL}/batch-report`
@@ -114,7 +113,6 @@ export default function BatchSelesaiInfo() {
             continue;
           }
           const j = await r.json();
-          // normalisasi: jika array langsung atau { data: [...] } atau { rows: [...] }
           const candidate = Array.isArray(j)
             ? j
             : Array.isArray(j.data)
@@ -123,7 +121,6 @@ export default function BatchSelesaiInfo() {
             ? j.rows
             : null;
           if (candidate !== null) {
-            // jika hasil kosong array, consider as valid only if length>0; otherwise continue searching
             if (candidate.length > 0) {
               rows = candidate;
               break;
@@ -209,7 +206,7 @@ export default function BatchSelesaiInfo() {
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   useEffect(() => {
     if (page > totalPages) setPage(1);
-  }, [totalPages]); // reset page if filter reduces pages
+  }, [page, totalPages]);
 
   const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
 
@@ -237,7 +234,7 @@ export default function BatchSelesaiInfo() {
     URL.revokeObjectURL(url);
   };
 
-  // Print simple printable view
+  // Print printable view
   const handlePrint = () => {
     const printWindow = window.open("", "_blank", "width=900,height=700");
     if (!printWindow) return;
@@ -326,14 +323,19 @@ export default function BatchSelesaiInfo() {
         {/* LEFT: batch list */}
         <div className="col-lg-4">
           <div
-            className="surface p-2"
-            style={{ maxHeight: 640, overflowY: "auto" }}
+            className="surface p-2 d-flex flex-column"
+            style={{
+              height: 760,
+              minHeight: 0,
+            }}
           >
+            {/* header */}
             <div className="d-flex justify-content-between align-items-center mb-2">
               <h6 className="mb-0">Daftar Batch</h6>
               <small className="text-muted">{batchList.length} items</small>
             </div>
 
+            {/* loading / error */}
             {loadingBatches && (
               <div className="text-center py-3">Memuat batch...</div>
             )}
@@ -341,51 +343,62 @@ export default function BatchSelesaiInfo() {
               <div className="alert alert-warning py-1">{batchError}</div>
             )}
 
-            <table className="table table-sm table-hover mb-0">
-              <thead className="table-light small">
-                <tr>
-                  <th>BatchID</th>
-                  <th className="text-center">Status</th>
-                  <th className="text-end">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {batchList.length === 0 && !loadingBatches && (
+            {/* area tabel: ambil ruang tersisa dan scroll jika overflow */}
+            <div
+              className="table-responsive flex-grow-1"
+              style={{ minHeight: 0, overflowY: "auto" }}
+            >
+              <table className="table table-sm table-hover mb-0">
+                <thead className="table-light small">
                   <tr>
-                    <td colSpan={3} className="text-center text-muted py-3">
-                      Tidak ada batch
-                    </td>
+                    <th>BatchID</th>
+                    <th className="text-center">Status</th>
+                    <th className="text-end">Aksi</th>
                   </tr>
-                )}
-                {batchList.map((b) => (
-                  <tr
-                    key={b.batch_id}
-                    className={
-                      selected === b.batch_id ? "table-primary" : undefined
-                    }
-                  >
-                    <td style={{ maxWidth: 180, wordBreak: "break-word" }}>
-                      {b.batch_id}
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-light text-dark">
-                        {b.status ?? "-"}
-                      </span>
-                    </td>
-                    <td className="text-end">
-                      <div className="d-flex gap-1 justify-content-end">
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleLihat(b.batch_id)}
-                        >
-                          Lihat
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {batchList.length === 0 && !loadingBatches && (
+                    <tr>
+                      <td colSpan={3} className="text-center text-muted py-3">
+                        Tidak ada batch
+                      </td>
+                    </tr>
+                  )}
+                  {batchList.map((b) => (
+                    <tr
+                      key={b.batch_id}
+                      className={
+                        selected === b.batch_id ? "table-primary" : undefined
+                      }
+                    >
+                      <td style={{ maxWidth: 180, wordBreak: "break-word" }}>
+                        {b.batch_id}
+                      </td>
+                      <td className="text-center">
+                        <span className="badge bg-light text-dark">
+                          {b.status ?? "-"}
+                        </span>
+                      </td>
+                      <td className="text-end">
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleLihat(b.batch_id)}
+                          >
+                            Lihat
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* optional footer: berada di paling bawah kartu */}
+            <div className="mt-2 text-end small text-muted">
+              Total: <strong>{batchList.length}</strong>
+            </div>
           </div>
         </div>
 

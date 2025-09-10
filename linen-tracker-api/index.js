@@ -111,7 +111,7 @@ app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  if (username === "jomama" && password === "jomama123") {
+  if (username === "admin" && password === "admin123") {
     const token = jwt.sign(
       { username },
       process.env.JWT_SECRET || "SECRET_KEY",
@@ -139,6 +139,7 @@ app.get("/master-linen", async (req, res) => {
         l.LINEN_MAX_CYCLE,
         l.LINEN_DESCRIPTION,
         l.LINEN_SIZE_CATEGORY,
+        l.LINEN_STATUS,
         v.LINEN_TOTAL_WASH
       FROM linens l
       LEFT JOIN view_item_total_wash v ON l.LINEN_ID = v.LINEN_ID
@@ -203,51 +204,27 @@ app.delete("/master-linen/:epc", async (req, res) => {
 // GET /status-summary
 app.get("/status-summary", async (req, res) => {
   const sql = `
-    SELECT status, COUNT(*) AS count FROM (
-      -- Bersih = sudah di batch_out_details
-      SELECT 'bersih' AS status
-      FROM batch_out_details
-
-      UNION ALL
-
-      -- Dicuci = ada di processed_item tapi belum di batch_out_details
-      SELECT 'dicuci' AS status
-      FROM processed_items pi
-      WHERE NOT EXISTS (
-        SELECT 1 FROM batch_out_details bod
-        WHERE bod.LINEN_ID = pi.LINEN_ID
-      )
-
-      UNION ALL
-
-      -- Intransit = ada di batch_in_details tapi belum di processed_items
-      SELECT 'intransit' AS status
-      FROM batch_in_details bid
-      WHERE NOT EXISTS (
-        SELECT 1 FROM processed_items pi
-        WHERE pi.LINEN_ID = bid.LINEN_ID
-      )
-    ) AS status_summary
-    GROUP BY status
+    SELECT LINEN_STATUS AS status, COUNT(*) AS count
+    FROM linens
+    GROUP BY LINEN_STATUS
   `;
 
   try {
     const [rows] = await pool.query(sql);
 
-    // Inisialisasi dengan 0
+    // Inisialisasi semua status dengan 0
     const result = {
       intransit: 0,
       dicuci: 0,
       bersih: 0,
-      keluar: 0,
       hilang: 0,
     };
 
-    // Isi dari query
+    // Isi berdasarkan hasil query
     rows.forEach((row) => {
-      const status = row.status.toLowerCase();
-      if (result.hasOwnProperty(status)) {
-        result[status] = row.count;
+      const statusKey = row.status.toLowerCase();
+      if (result.hasOwnProperty(statusKey)) {
+        result[statusKey] = row.count;
       }
     });
 
@@ -269,11 +246,13 @@ app.get("/status-summary", async (req, res) => {
 app.get("/linen/top-cycles", async (req, res) => {
   const sql = `
     SELECT 
-      LINEN_ID AS EPC, 
-      LINEN_TYPE AS Tipe, 
-      LINEN_TOTAL_WASH AS cycle, 
-      LINEN_MAX_CYCLE AS MaxCuci
-    FROM view_item_total_wash
+      v.LINEN_ID AS EPC, 
+      v.LINEN_TYPE AS Tipe, 
+      v.LINEN_TOTAL_WASH AS cycle, 
+      v.LINEN_MAX_CYCLE AS MaxCuci,
+      l.LINEN_STATUS AS Status
+    FROM linens l
+    LEFT JOIN view_item_total_wash v ON v.LINEN_ID = l.LINEN_ID
     ORDER BY LINEN_TOTAL_WASH DESC
     LIMIT 5
   `;
