@@ -14,6 +14,7 @@ import type { StatusCounts } from "./components/StatusSummary";
 import BatchSelesaiInfo from "./pages/BatchSelesai";
 import RiwayatRegister from "./pages/RiwayatRegister";
 import LoginPage from "./pages/LoginPage";
+import LinenHilang from "./pages/RiwayatLinenHilang";
 
 function App() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({
@@ -87,6 +88,7 @@ function App() {
                         path="/riwayat/register"
                         element={<RiwayatRegister />}
                       />
+                      <Route path="/riwayat/hilang" element={<LinenHilang />} />
                       <Route path="/master-linen" element={<MasterLinen />} />
                       <Route path="/ruangan" element={<Ruangan />} />
                     </Routes>

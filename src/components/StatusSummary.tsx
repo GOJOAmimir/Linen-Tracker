@@ -36,7 +36,7 @@ export default function StatusSummary({ counts, onCardClick }: Props) {
     },
     {
       key: "dicuci",
-      label: "Dicuci",
+      label: "Diproses",
       bgClass: "bg-warning text-dark",
       icon: <BsDropletHalf size={46} />,
     },

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(pdfMake as any).vfs) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
 }
 
@@ -81,7 +83,7 @@ export default function RiwayatRegister() {
         idx + 1,
         d.LINEN_ID,
         d.LINEN_TYPE,
-        (d.Status = "Dicuci"),
+        ("Dicuci"),
         d.LINEN_MAX_CYCLE.toString(),
         d.LINEN_TOTAL_WASH.toString(),
       ]),
@@ -216,7 +218,7 @@ export default function RiwayatRegister() {
                     {d.LINEN_ID}
                   </td>
                   <td>{d.LINEN_TYPE}</td>
-                  <td>{(d.Status = "Dicuci")}</td>
+                  <td>{"Dicuci"}</td>
                   <td className="text-center">{d.LINEN_MAX_CYCLE}</td>
                   <td className="text-center">{d.LINEN_TOTAL_WASH}</td>
                 </tr>

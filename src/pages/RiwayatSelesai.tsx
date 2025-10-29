@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(pdfMake as any).vfs) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
 }
 

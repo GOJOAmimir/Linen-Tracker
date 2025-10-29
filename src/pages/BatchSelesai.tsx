@@ -49,6 +49,7 @@ export default function BatchSelesaiInfo() {
           ? json.data
           : [];
         setBatchList(arr);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("fetch /batch-status error:", err);
         setBatchError("Gagal memuat daftar batch");
@@ -104,6 +105,7 @@ export default function BatchSelesaiInfo() {
         `${import.meta.env.VITE_API_URL}/batch-report`
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let rows: any = null;
       for (const url of endpoints) {
         try {
@@ -150,6 +152,7 @@ export default function BatchSelesaiInfo() {
       }
 
       // Normalize rows to shape LinenEntry
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const normalized: LinenEntry[] = rows.map((x: any) => ({
         LINEN_ID: x.LINEN_ID ?? x.EPC ?? x.epc ?? x.linen_id ?? "",
         LINEN_TYPE: x.LINEN_TYPE ?? x.Tipe ?? x.tipe ?? x.type ?? "Unknown",
@@ -162,6 +165,7 @@ export default function BatchSelesaiInfo() {
 
       setDetailRows(normalized);
       setSelected(batchId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("fetch /batch-report error:", err);
       setDetailError(err?.message ?? "Gagal memuat detail batch");
