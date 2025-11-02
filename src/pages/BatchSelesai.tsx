@@ -214,30 +214,6 @@ export default function BatchSelesaiInfo() {
 
   const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
 
-  // Export CSV helper
-  const downloadCsv = () => {
-    if (detailRows.length === 0) return;
-    const header = ["No", "EPC", "Tipe", "Status", "Max Cycle", "Total Wash"];
-    const rows = detailRows.map((d, i) => [
-      (i + 1).toString(),
-      d.LINEN_ID,
-      d.LINEN_TYPE ?? "",
-      d.Status ?? "",
-      d.LINEN_MAX_CYCLE?.toString() ?? "",
-      d.LINEN_TOTAL_WASH?.toString() ?? "0",
-    ]);
-    const csvContent = [header, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `batch-${selected ?? "report"}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   // Print printable view
   const handlePrint = () => {
     const printWindow = window.open("", "_blank", "width=900,height=700");
@@ -399,7 +375,6 @@ export default function BatchSelesaiInfo() {
               </table>
             </div>
 
-            {/* optional footer: berada di paling bawah kartu */}
             <div className="mt-2 text-end small text-muted">
               Total: <strong>{batchList.length}</strong>
             </div>
@@ -455,13 +430,6 @@ export default function BatchSelesaiInfo() {
                     }}
                   >
                     Tutup
-                  </button>
-                  <button
-                    className="btn btn-outline-success"
-                    onClick={downloadCsv}
-                    disabled={detailRows.length === 0}
-                  >
-                    Export CSV
                   </button>
                   <button
                     className="btn btn-success"

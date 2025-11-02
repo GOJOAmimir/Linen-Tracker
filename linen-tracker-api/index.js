@@ -7,57 +7,11 @@ import missingRoutes from "./routes/rHilang.js";
 import loginHandler from "./routes/rlogin.js";
 import MasterLinen from "./routes/rMasterLinen.js";
 import LatestBatch from "./routes/rLatestBatch.js";
+import Inventory from "./routes/rInventory.js";
 
 dotenv.config();
 
 const app = express();
-/*
-// -- debug verbose: log setiap pendaftaran route (TEMPORARY)
-const util = require("util");
-const methods = [
-  "get",
-  "post",
-  "put",
-  "delete",
-  "patch",
-  "options",
-  "use",
-  "all",
-];
-methods.forEach((m) => {
-  const orig = app[m] && app[m].bind(app);
-  if (!orig) return;
-  app[m] = (...args) => {
-    // inspect first arg (path or middleware)
-    let first = args[0];
-    function pretty(x) {
-      try {
-        if (typeof x === "string") return `string:${x}`;
-        if (typeof x === "function") return `function:${x.name || "<anon>"}`;
-        if (x instanceof RegExp) return `RegExp:${x.source}`;
-        if (Array.isArray(x)) return `array:[${x.map(pretty).join(",")}]`;
-        return `other:${util.inspect(x, { depth: 0 })}`;
-      } catch (e) {
-        return "<unprintable>";
-      }
-    }
-    console.log(`REGISTER: app.${m} -> ${pretty(first)}`);
-    try {
-      return orig(...args);
-    } catch (err) {
-      // Print helpful debug info and rethrow
-      console.error("--- ERROR registering route ---");
-      console.error(`method: app.${m}`);
-      console.error("first arg (raw):", first);
-      console.error("first arg (pretty):", pretty(first));
-      console.error("all args:", util.inspect(args, { depth: 2 }));
-      console.error("error stack:");
-      console.error(err.stack || err);
-      throw err;
-    }
-  };
-}); 
-*/
 
 /*───────────────────────────────────────────────────────────────*/
 /* 1. Konfigurasi koneksi MySQL                                 */
@@ -107,15 +61,16 @@ app.options(
 );
 
 app.use(express.json());
-app.use("/api/missing", missingRoutes);
-app.use("/login", loginHandler);
-app.use("/master-linen", MasterLinen);
-app.use("/batches/latest", LatestBatch);
-
 /*───────────────────────────────────────────────────────────────*/
 /* 3. Routes                                                    */
 /*───────────────────────────────────────────────────────────────*/
 app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
+
+app.use("/api/missing", missingRoutes);
+app.use("/login", loginHandler);
+app.use("/master-linen", MasterLinen);
+app.use("/batches/latest", LatestBatch);
+app.use("/inventory/", Inventory);
 
 // GET /status-summary
 app.get("/status-summary", async (req, res) => {

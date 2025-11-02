@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import axios from "axios";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(pdfMake as any).vfs) {
@@ -33,10 +34,15 @@ export default function RiwayatSelesai() {
   } | null>(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/batch-list/finished`)
-      .then((r) => r.json())
-      .then(setBatches)
-      .catch(console.error);
+    const loadBatches = async () => {
+      try{
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/batch-list/finished`)
+        setBatches(res.data);
+      }catch(err){
+        console.error("Gagal mengmabil data", err)
+      }
+    };
+    loadBatches();
   }, []);
 
   async function loadDetails(batchId: string, tanggal: string, waktu: string) {

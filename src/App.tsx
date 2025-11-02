@@ -15,14 +15,18 @@ import BatchSelesaiInfo from "./pages/BatchSelesai";
 import RiwayatRegister from "./pages/RiwayatRegister";
 import LoginPage from "./pages/LoginPage";
 import LinenHilang from "./pages/RiwayatLinenHilang";
+import InventoryPage from "./pages/InventoryPage";
+import OnWayPage from "./pages/OnWayPage";
+import StoragePage from "./pages/StoragePage";
+import StorageDetailPage from "./pages/StorageDetailPage";
+
 
 function App() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({
     intransit: 0,
     dicuci: 0,
     bersih: 0,
-    keluar: 0,
-    hilang: 0,
+    hilang: 0
   });
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -91,6 +95,11 @@ function App() {
                       <Route path="/riwayat/hilang" element={<LinenHilang />} />
                       <Route path="/master-linen" element={<MasterLinen />} />
                       <Route path="/ruangan" element={<Ruangan />} />
+                      <Route path="/inventory" element={<InventoryPage />} />
+                      <Route path="/inventory/storage" element={<StoragePage />} />
+                      <Route path="/inventory/onway" element={<OnWayPage />} />
+                      <Route path="/inventory/storage/:linenType" element={<StorageDetailPage />} />
+
                     </Routes>
                   </div>
                 </div>
@@ -104,3 +113,4 @@ function App() {
 }
 
 export default App;
+

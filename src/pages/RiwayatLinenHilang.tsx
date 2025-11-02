@@ -20,7 +20,7 @@ const RiwayatLinenHilang: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/missing");
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/missing`);
         if (res.data.success) setData(res.data.data);
       } catch (err) {
         console.error("Gagal mengambil data:", err);
@@ -40,15 +40,15 @@ const RiwayatLinenHilang: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4 text-gray-800">
-        🧺 Riwayat Linen Hilang
-      </h1>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        !Riwayat Linen Hilang
+      </h2>
 
       {data.length === 0 ? (
         <div className="text-gray-500">Tidak ada linen yang hilang 🎉</div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-xl shadow-md">
+          <table className="table table-bordered table-hover align-middle mb-0">
             <thead className="bg-blue-100 text-gray-800">
               <tr>
                 <th className="py-3 px-4 text-left">Linen ID</th>
