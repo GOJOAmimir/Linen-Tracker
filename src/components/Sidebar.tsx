@@ -102,16 +102,6 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
                       {isOpen && "Riwayat Hilang"}
                     </NavLink>
                   </li>
-
-                  <li>
-                    <NavLink
-                      to="/inventory"
-                      className="nav-link text-white"
-                    >
-                      <i className="bi bi-box-seam me-2" />
-                      {isOpen && "Inventory"}
-                    </NavLink>
-                  </li>
                 </ul>
               </li>
 
@@ -125,6 +115,12 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
                     <NavLink to="/master-linen" className="nav-link text-white">
                       <i className="bi bi-file-earmark-text me-2" />
                       {isOpen && "Master Linen"}
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/inventory" className="nav-link text-white">
+                      <i className="bi bi-box-seam me-2" />
+                      {isOpen && "Inventory"}
                     </NavLink>
                   </li>
                   <li>

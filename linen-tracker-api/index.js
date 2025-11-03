@@ -8,6 +8,7 @@ import loginHandler from "./routes/rlogin.js";
 import MasterLinen from "./routes/rMasterLinen.js";
 import LatestBatch from "./routes/rLatestBatch.js";
 import Inventory from "./routes/rInventory.js";
+import Dashboard from "./routes/rDashboard.js";
 
 dotenv.config();
 
@@ -71,48 +72,7 @@ app.use("/login", loginHandler);
 app.use("/master-linen", MasterLinen);
 app.use("/batches/latest", LatestBatch);
 app.use("/inventory/", Inventory);
-
-// GET /status-summary
-app.get("/status-summary", async (req, res) => {
-  const sql = `
-    SELECT 
-      SUM(CASE WHEN so.linen_id IS NOT NULL THEN 1 ELSE 0 END) AS intransit,
-      SUM(CASE WHEN sk.linen_id IS NOT NULL AND so.linen_id IS NULL THEN 1 ELSE 0 END) AS bersih,
-      SUM(CASE WHEN pi.linen_id IS NOT NULL 
-                AND sk.linen_id IS NULL 
-                AND so.linen_id IS NULL THEN 1 ELSE 0 END) AS dicuci,
-      SUM(CASE WHEN pi.linen_id IS NULL 
-                AND sk.linen_id IS NULL 
-                AND so.linen_id IS NULL THEN 1 ELSE 0 END) AS intransit
-    FROM linens l
-    LEFT JOIN processed_items pi ON l.LINEN_ID = pi.linen_id
-    LEFT JOIN storage_keep sk ON l.LINEN_ID = sk.linen_id
-    LEFT JOIN storage_out so ON l.LINEN_ID = so.linen_id;
-  `;
-
-  try {
-    const [rows] = await pool.query(sql);
-
-    const result = {
-      intransit: rows[0].intransit || 0,
-      dicuci: rows[0].dicuci || 0,
-      bersih: rows[0].bersih || 0,
-      hilang: rows[0].hilang || 0,
-    };
-
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
-  } catch (err) {
-    console.error("GET /status-summary error:", err.message);
-    res.status(500).json({
-      success: false,
-      message: "Gagal mengambil ringkasan status linen.",
-      error: err.message,
-    });
-  }
-});
+app.use("/dashboard", Dashboard);
 
 // GET /linen/top-cycles
 app.get("/linen/top-cycles", async (req, res) => {

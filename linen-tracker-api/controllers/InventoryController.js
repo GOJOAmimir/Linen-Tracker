@@ -163,4 +163,5 @@ export const getRowType = async (req, res) => {
     console.error(err);
     res.status(500).json({ success: false, message: "Gagal mengambil data storage" });
   }
+
 };

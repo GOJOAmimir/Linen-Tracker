@@ -1,5 +1,5 @@
 import express from "express";
-import { getMissingLinens } from "../controllers/hilangController.js";
+import { getMissingLinens } from "../controllers/HilangController.js";
 
 const router = express.Router();
 

@@ -1,5 +1,11 @@
 import express from "express";
-import { storage_out, storage_keep_log, storage_out_log, getInventorySummary, getRowType} from "../controllers/InventoryController.js";
+import {
+  storage_out,
+  storage_keep_log,
+  storage_out_log,
+  getInventorySummary,
+  getRowType,
+} from "../controllers/InventoryController.js";
 import { storage_keep_by_type } from "../controllers/InventoryController.js";
 
 const router = express.Router();

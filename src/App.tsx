@@ -19,21 +19,22 @@ import InventoryPage from "./pages/InventoryPage";
 import OnWayPage from "./pages/OnWayPage";
 import StoragePage from "./pages/StoragePage";
 import StorageDetailPage from "./pages/StorageDetailPage";
-
+import StorageLog from "./pages/StorageLog";
+import OnWayLog from "./pages/OnWayLog";
 
 function App() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({
     intransit: 0,
     dicuci: 0,
     bersih: 0,
-    hilang: 0
+    hilang: 0,
   });
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchCounts = () =>
-      fetch(`${import.meta.env.VITE_API_URL}/status-summary`)
+      fetch(`${import.meta.env.VITE_API_URL}/dashboard/status-summary`)
         .then((r) => r.json())
         .then((resJson) => {
           if (resJson.success && resJson.data) {
@@ -96,10 +97,23 @@ function App() {
                       <Route path="/master-linen" element={<MasterLinen />} />
                       <Route path="/ruangan" element={<Ruangan />} />
                       <Route path="/inventory" element={<InventoryPage />} />
-                      <Route path="/inventory/storage" element={<StoragePage />} />
+                      <Route
+                        path="/inventory/storage"
+                        element={<StoragePage />}
+                      />
                       <Route path="/inventory/onway" element={<OnWayPage />} />
-                      <Route path="/inventory/storage/:linenType" element={<StorageDetailPage />} />
-
+                      <Route
+                        path="/inventory/storage/:linenType"
+                        element={<StorageDetailPage />}
+                      />
+                      <Route
+                        path="/inventory/storage/history"
+                        element={<StorageLog />}
+                      />
+                      <Route
+                        path="/inventory/onway/history"
+                        element={<OnWayLog />}
+                      />
                     </Routes>
                   </div>
                 </div>
@@ -113,4 +127,3 @@ function App() {
 }
 
 export default App;
-

@@ -21,7 +21,9 @@ const StoragePage = () => {
   useEffect(() => {
     const loadInventory = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/inventory/storage`);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/inventory/storage`
+        );
         if (res.data.success) {
           setInventory(res.data.data);
           setTodayTotal(res.data.today_total);
@@ -36,7 +38,6 @@ const StoragePage = () => {
     loadInventory();
   }, []);
 
-
   return (
     <div className="min-h-screen bg-gray-50 p-10">
       {/* ===== HEADER INFO CARDS ===== */}
@@ -50,7 +51,7 @@ const StoragePage = () => {
           <p className="text-3xl font-bold text-green-600">{totalStorage}</p>
         </div>
         <div className="bg-white border-l-4 border-yellow-500 p-6 rounded-xl shadow-sm">
-          <h3 className="text-gray-600 text-sm">Storage Type Count</h3>
+          <h3 className="text-gray-600 text-sm">Tipe Linen Count</h3>
           <p className="text-3xl font-bold text-yellow-600">{totalTipe}</p>
         </div>
       </div>
@@ -67,11 +68,12 @@ const StoragePage = () => {
 
         <div className="flex gap-4">
           <button
-              className="btn btn-outline-primary"
-              title="Cetak / Export ke PDF"
-            >
-              History
-            </button>
+            className="btn btn-outline-primary"
+            title="Log Storage History"
+            onClick={() => navigate("/inventory/storage/history")}
+          >
+            History
+          </button>
 
           <select
             value={sortBy}
@@ -83,46 +85,46 @@ const StoragePage = () => {
           </select>
 
           <button
-              className="btn btn-outline-success"
-              title="Cetak / Export ke PDF"
-            >
-              🖨️ Print
-            </button>
+            className="btn btn-outline-success"
+            title="Cetak / Export ke PDF"
+          >
+            🖨️ Print
+          </button>
         </div>
       </div>
 
       {/* ===== DATA TABLE ===== */}
-<div className="bg-white rounded-xl shadow overflow-hidden">
-  <table className="w-full text-center">
-    <thead className="bg-blue-100">
-      <tr>
-        <th className="px-6 py-3">Tipe Linen</th>
-        <th className="px-6 py-3">Jumlah</th>
-        <th className="px-6 py-3">Storage Type</th>
-        <th className="px-6 py-3">Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      {inventory.map((item, i) => (
-        <tr key={i} className="border-b hover:bg-gray-50 transition">
-          <td className="px-6 py-3 text-center">{item.LINEN_TYPE}</td>
-          <td className="px-6 py-3 text-center">{item.jumlah}</td>
-          <td className="px-6 py-3 text-center">{item.storage_type}</td>
-          <td className="px-6 py-3">
-  <button
-    onClick={() => navigate(`/inventory/storage/${item.LINEN_TYPE}`)}
-    className="text-blue-600 hover:text-blue-800 font-medium"
-  >
-    Detail
-  </button>
-</td>
-
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
-
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full text-center">
+          <thead className="bg-blue-100">
+            <tr>
+              <th className="px-6 py-3">Tipe Linen</th>
+              <th className="px-6 py-3">Jumlah</th>
+              <th className="px-6 py-3">Storage Type</th>
+              <th className="px-6 py-3">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {inventory.map((item, i) => (
+              <tr key={i} className="border-b hover:bg-gray-50 transition">
+                <td className="px-6 py-3 text-center">{item.LINEN_TYPE}</td>
+                <td className="px-6 py-3 text-center">{item.jumlah}</td>
+                <td className="px-6 py-3 text-center">{item.storage_type}</td>
+                <td className="px-6 py-3">
+                  <button
+                    onClick={() =>
+                      navigate(`/inventory/storage/${item.LINEN_TYPE}`)
+                    }
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Detail
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

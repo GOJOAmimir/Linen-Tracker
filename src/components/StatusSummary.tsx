@@ -3,6 +3,7 @@ import {
   BsDropletHalf,
   BsBoxArrowRight,
   BsExclamationTriangleFill,
+  BsArrowDownRightCircleFill,
 } from "react-icons/bs";
 import { LuLayers } from "react-icons/lu";
 
@@ -12,6 +13,7 @@ export type StatusCounts = {
   bersih: number;
   keluar?: number;
   hilang: number;
+  dipakai?: number;
 };
 
 type Props = {
@@ -29,10 +31,10 @@ export default function StatusSummary({ counts, onCardClick }: Props) {
     icon: React.ReactNode;
   }[] = [
     {
-      key: "intransit",
-      label: "Intransit",
-      bgClass: "bg-success",
-      icon: <BsBoxArrowRight size={46} />,
+      key: "dipakai",
+      label: "Dipakai",
+      bgClass: "bg-primary",
+      icon: <BsArrowDownRightCircleFill size={46} />,
     },
     {
       key: "dicuci",
@@ -45,6 +47,12 @@ export default function StatusSummary({ counts, onCardClick }: Props) {
       label: "Bersih",
       bgClass: "bg-info text-dark",
       icon: <LuLayers size={46} />,
+    },
+    {
+      key: "intransit",
+      label: "Intransit",
+      bgClass: "bg-success",
+      icon: <BsBoxArrowRight size={46} />,
     },
     {
       key: "hilang",
