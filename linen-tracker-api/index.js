@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 require("dotenv").config();
 
@@ -103,10 +104,11 @@ app.options(
 
 app.use(express.json());
 
+
 /*───────────────────────────────────────────────────────────────*/
 /* 3. Routes                                                    */
 /*───────────────────────────────────────────────────────────────*/
-app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
+// app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -472,10 +474,18 @@ app.get("/batch-report/registered/:batchInId", async (req, res) => {
   }
 });
 
+const frontendPath = path.join(__dirname, "client", "dist"); // or "build"
+app.use(express.static(frontendPath));
+
+app.get((req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
+
 /*───────────────────────────────────────────────────────────────*/
 /* 4. Start server                                              */
 /*───────────────────────────────────────────────────────────────*/
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀  API server listening on port ${PORT}`);
 });
+ 

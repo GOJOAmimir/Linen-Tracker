@@ -10,7 +10,7 @@ export type StatusCounts = {
   intransit: number;
   dicuci: number;
   bersih: number;
-  keluar?: number;
+  keluar: number;
   hilang: number;
 };
 
