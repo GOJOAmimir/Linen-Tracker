@@ -49,6 +49,7 @@ export default function BatchSelesaiInfo() {
           ? json.data
           : [];
         setBatchList(arr);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("fetch /batch-status error:", err);
         setBatchError("Gagal memuat daftar batch");
@@ -104,6 +105,7 @@ export default function BatchSelesaiInfo() {
         `${import.meta.env.VITE_API_URL}/batch-report`
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let rows: any = null;
       for (const url of endpoints) {
         try {
@@ -150,6 +152,7 @@ export default function BatchSelesaiInfo() {
       }
 
       // Normalize rows to shape LinenEntry
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const normalized: LinenEntry[] = rows.map((x: any) => ({
         LINEN_ID: x.LINEN_ID ?? x.EPC ?? x.epc ?? x.linen_id ?? "",
         LINEN_TYPE: x.LINEN_TYPE ?? x.Tipe ?? x.tipe ?? x.type ?? "Unknown",
@@ -162,6 +165,7 @@ export default function BatchSelesaiInfo() {
 
       setDetailRows(normalized);
       setSelected(batchId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("fetch /batch-report error:", err);
       setDetailError(err?.message ?? "Gagal memuat detail batch");
@@ -209,30 +213,6 @@ export default function BatchSelesaiInfo() {
   }, [page, totalPages]);
 
   const pagedRows = filteredRows.slice((page - 1) * pageSize, page * pageSize);
-
-  // Export CSV helper
-  const downloadCsv = () => {
-    if (detailRows.length === 0) return;
-    const header = ["No", "EPC", "Tipe", "Status", "Max Cycle", "Total Wash"];
-    const rows = detailRows.map((d, i) => [
-      (i + 1).toString(),
-      d.LINEN_ID,
-      d.LINEN_TYPE ?? "",
-      d.Status ?? "",
-      d.LINEN_MAX_CYCLE?.toString() ?? "",
-      d.LINEN_TOTAL_WASH?.toString() ?? "0",
-    ]);
-    const csvContent = [header, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `batch-${selected ?? "report"}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   // Print printable view
   const handlePrint = () => {
@@ -395,7 +375,6 @@ export default function BatchSelesaiInfo() {
               </table>
             </div>
 
-            {/* optional footer: berada di paling bawah kartu */}
             <div className="mt-2 text-end small text-muted">
               Total: <strong>{batchList.length}</strong>
             </div>
@@ -451,13 +430,6 @@ export default function BatchSelesaiInfo() {
                     }}
                   >
                     Tutup
-                  </button>
-                  <button
-                    className="btn btn-outline-success"
-                    onClick={downloadCsv}
-                    disabled={detailRows.length === 0}
-                  >
-                    Export CSV
                   </button>
                   <button
                     className="btn btn-success"

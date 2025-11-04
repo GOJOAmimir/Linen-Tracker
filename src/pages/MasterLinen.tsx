@@ -10,8 +10,9 @@ import {
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(pdfMake as any).vfs) {
-  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
+  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {}; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 type Linen = {
@@ -20,6 +21,13 @@ type Linen = {
   LINEN_TYPE: string;
   LINEN_HEIGHT: string;
   LINEN_WIDTH: string;
+  LINEN_LENGTH: string;
+  LINEN_SIZE_CATEGORY: string;
+  LINEN_WEIGHT: string;
+  LINEN_MATERIAL: string;
+  LINEN_SUPPLIER: string;
+  LINEN_TYPE_MOVING: string;
+  LINEN_BUDGET_SOURCE: string;
   LINEN_MAX_CYCLE: number;
   LINEN_TOTAL_WASH: number;
   LINEN_DESCRIPTION: string;
@@ -187,7 +195,7 @@ export default function MasterLinen() {
         ]
       : []),
     { accessorKey: "LINEN_ID", header: "EPC" },
-    { accessorKey: "LINEN_TYPE", header: "Tipe Linen" },
+    { accessorKey: "LINEN_TYPE", header: "Linen Type" },
     { accessorKey: "LINEN_HEIGHT", header: "Height" },
     { accessorKey: "LINEN_WIDTH", header: "Width" },
     { accessorKey: "LINEN_MAX_CYCLE", header: "Max Cycle" },
@@ -197,9 +205,14 @@ export default function MasterLinen() {
       cell: ({ row }) => row.original.LINEN_TOTAL_WASH ?? 0,
     },
 
+    { accessorKey: "LINEN_LENGTH", header: "Length" },
+    { accessorKey: "LINEN_WEIGHT", header: "Weight" },
+    { accessorKey: "LINEN_SIZE_CATEGORY", header: "Size Category" },
+    { accessorKey: "LINEN_MATERIAL", header: "Material" },
+    { accessorKey: "LINEN_SUPPLIER", header: "Supplier" },
+    { accessorKey: "LINEN_BUDGET_SOURCE", header: "Budget Source" },
     { accessorKey: "LINEN_DESCRIPTION", header: "Deskripsi" },
     { accessorKey: "LINEN_CREATED_DATE", header: "Tanggal Input" },
-    { accessorKey: "LINEN_STATUS", header: "Status" },
   ];
 
   const table = useReactTable({

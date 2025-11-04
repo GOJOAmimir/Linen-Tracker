@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import axios from "axios";
 
 if (!(pdfMake as any).vfs) {
   (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
@@ -31,25 +32,26 @@ export default function RiwayatRegister() {
   } | null>(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/batch-list/registered`)
-      .then((r) => r.json())
-      .then(setBatches)
-      .catch(console.error);
+    const loadBatches = async () => {
+      try{
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/batch-list/registered`);
+        setBatches(res.data);
+      }catch (err) {
+        console.error("Failed to fetch:", err);
+      }
+    };
+    loadBatches();
   }, []);
 
   async function loadDetails(batchId: string, tanggal: string, waktu: string) {
     try {
       const encBatchID = encodeURIComponent(batchId);
       const endpoint = `/batch-report/registered/${encBatchID}`;
-      const res = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`);
+      const url = `${import.meta.env.VITE_API_URL}${endpoint}`;
 
-      if (!res.ok) {
-        console.error("Fetch failed:", res.status, await res.text());
-        setDetails([]);
-        return;
-      }
+      const res = await axios.get(url);
 
-      const rows: DetailRow[] = await res.json();
+      const rows: DetailRow[] = await res.data;
 
       if (!Array.isArray(rows)) {
         console.error("Invalid detail data format:", rows);
@@ -59,8 +61,12 @@ export default function RiwayatRegister() {
 
       setSelected({ b: batchId, t: tanggal, w: waktu });
       setDetails(rows);
-    } catch (err) {
-      console.error("Failed to load batch details:", err);
+    } catch (err: any) {
+      if(err.response){
+        console.error("request failed", err.response.status, err.response.data);
+      }else{
+        console.error("Failed to load batch details:", err.message);
+      }
       setDetails([]);
     }
   }

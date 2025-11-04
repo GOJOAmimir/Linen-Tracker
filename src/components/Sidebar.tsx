@@ -1,9 +1,10 @@
-// Sidebar.tsx
 import { NavLink, useNavigate } from "react-router-dom";
+import { getUserRole } from "./auth";
 
 export function Sidebar({ isOpen }: { isOpen: boolean }) {
   const sidebarWidth = isOpen ? 250 : 60;
   const navigate = useNavigate();
+  const role = getUserRole();
 
   const handleLogout = async () => {
     try {
@@ -15,14 +16,9 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }).catch(() => {
-          /* ignore network error, still proceed to client-side logout */
-        });
+        }).catch(() => {});
       }
-    } catch (e) {
-      console.error("Logout request failed:", e);
     } finally {
-      // Clear client-side auth
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
       navigate("/login", { replace: true });
@@ -48,74 +44,99 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
           {isOpen ? "🏥 Hospital Linen" : "🏥"}
         </h5>
         <hr className="text-white my-2" />
-        <ul className="nav flex-column small">
-          <li className="nav-item mb-1">
+        <ul className="nav flex-column">
+          {/* user */}
+          <li className="nav-item">
             <NavLink to="/" className="nav-link text-white">
               <i className="bi bi-speedometer2 me-2" />
               {isOpen && "Dashboard"}
             </NavLink>
           </li>
 
-          <li className="nav-item">
-            <span className="nav-link text-white fw-bold mt-2">
-              {isOpen ? "📊 Laporan" : "📊"}
-            </span>
-            <hr className="text-white my-2" />
-
-            <ul className="nav flex-column ms-2">
-              <li>
-                <NavLink
-                  to="/batch-report/finished"
-                  className="nav-link text-white"
-                >
-                  <i className="bi bi-box-seam me-2" />
-                  {isOpen && "Informasi Batch"}
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink to="/riwayat/selesai" className="nav-link text-white">
-                  <i className="bi bi-check2-circle me-2" />
-                  {isOpen && "Riwayat Selesai"}
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink to="/riwayat/register" className="nav-link text-white">
-                  <i className="bi bi-clipboard-data me-2" />
-                  {isOpen && "Riwayat Registered"}
-                </NavLink>
-              </li>
-            </ul>
+          <li>
+            <NavLink
+              to="/batch-report/finished"
+              className="nav-link text-white"
+            >
+              <i className="bi bi-box-seam me-2" />
+              {isOpen && "Informasi Batch"}
+            </NavLink>
           </li>
 
-          <li className="nav-item">
-            <span className="nav-link text-white fw-bold mt-2">
-              {isOpen ? "🗂️ Data Master" : "🗂️"}
-            </span>
-            <hr className="text-white my-2" />
-            <ul className="nav flex-column ms-2">
-              <li>
-                <NavLink to="/master-linen" className="nav-link text-white">
-                  <i className="bi bi-file-earmark-text me-2" />
-                  {isOpen && "Master Linen"}
-                </NavLink>
+          {/* admin role */}
+          {role === "admin" && (
+            <>
+              <li className="nav-item">
+                <span className="nav-link text-white fw-bold mt-2">
+                  {isOpen ? "📊 Laporan" : "📊"}
+                </span>
+                <hr className="text-white my-2" />
+
+                <ul className="nav flex-column ms-2">
+                  <li>
+                    <NavLink
+                      to="/riwayat/selesai"
+                      className="nav-link text-white"
+                    >
+                      <i className="bi bi-check2-circle me-2" />
+                      {isOpen && "Riwayat Selesai"}
+                    </NavLink>
+                  </li>
+
+                  <li>
+                    <NavLink
+                      to="/riwayat/register"
+                      className="nav-link text-white"
+                    >
+                      <i className="bi bi-clipboard-data me-2" />
+                      {isOpen && "Riwayat Registered"}
+                    </NavLink>
+                  </li>
+
+                  <li>
+                    <NavLink
+                      to="/riwayat/hilang"
+                      className="nav-link text-white"
+                    >
+                      <i className="bi-exclamation-circle me-2" />
+                      {isOpen && "Riwayat Hilang"}
+                    </NavLink>
+                  </li>
+                </ul>
               </li>
-              <li>
-                <NavLink to="/ruangan" className="nav-link text-white">
-                  <i className="bi bi-building me-2" />
-                  {isOpen && "Ruangan"}
-                </NavLink>
+
+              <li className="nav-item">
+                <span className="nav-link text-white fw-bold mt-2">
+                  {isOpen ? "🗂️ Data Master" : "🗂️"}
+                </span>
+                <hr className="text-white my-2" />
+                <ul className="nav flex-column ms-2">
+                  <li>
+                    <NavLink to="/master-linen" className="nav-link text-white">
+                      <i className="bi bi-file-earmark-text me-2" />
+                      {isOpen && "Master Linen"}
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/inventory" className="nav-link text-white">
+                      <i className="bi bi-box-seam me-2" />
+                      {isOpen && "Inventory"}
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/ruangan" className="nav-link text-white">
+                      <i className="bi bi-building me-2" />
+                      {isOpen && "Ruangan"}
+                    </NavLink>
+                  </li>
+                </ul>
               </li>
-            </ul>
-          </li>
+            </>
+          )}
         </ul>
       </div>
 
-      {/* spacer pushes logout to bottom */}
       <div style={{ flexGrow: 1 }} />
-
-      {/* Logout button bottom */}
       <div className="mb-2">
         <button
           onClick={handleLogout}
