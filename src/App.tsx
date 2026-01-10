@@ -28,6 +28,7 @@ function App() {
     dicuci: 0,
     bersih: 0,
     hilang: 0,
+    keluar: 0,
   });
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
