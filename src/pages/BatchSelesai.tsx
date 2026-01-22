@@ -1,10 +1,9 @@
-// src/pages/BatchSelesaiInfo.tsx
 import { useEffect, useMemo, useState } from "react";
 
 type BatchListEntry = {
   batch_id: string;
   status?: string;
-  waktu_mulai?: string; // ISO or 'YYYY-MM-DD HH:mm:ss'
+  waktu_mulai?: string;
   waktu_selesai?: string;
   jumlah?: number;
 };
@@ -42,14 +41,12 @@ export default function BatchSelesaiInfo() {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/batch-status`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        // try to normalize data shape: allow array or object.data
         const arr: BatchListEntry[] = Array.isArray(json)
           ? json
           : Array.isArray(json.data)
-          ? json.data
-          : [];
+            ? json.data
+            : [];
         setBatchList(arr);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("fetch /batch-status error:", err);
         setBatchError("Gagal memuat daftar batch");
@@ -69,15 +66,12 @@ export default function BatchSelesaiInfo() {
     setPage(1);
 
     try {
-      // cari status batch di daftar (kalo ada)
       const batchMeta = batchList.find((b) => b.batch_id === batchId);
       const status = (batchMeta?.status ?? "").toString().toLowerCase();
 
-      // susun daftar endpoint nyoba berdasar status
       const enc = encodeURIComponent(batchId);
       const endpoints: string[] = [];
 
-      // kalo status ada dan mengindikasikan finished, prioritaskan finished endpoint
       if (
         status.includes("finish") ||
         status.includes("selesai") ||
@@ -85,24 +79,20 @@ export default function BatchSelesaiInfo() {
       ) {
         endpoints.push(
           `${import.meta.env.VITE_API_URL}/batch-report/finished/${enc}`,
-          `${import.meta.env.VITE_API_URL}/batch-report/${enc}`
+          `${import.meta.env.VITE_API_URL}/batch-report/${enc}`,
         );
       } else {
-        // in-progress / registered -> panggil registered endpoint dulu
         endpoints.push(
           `${import.meta.env.VITE_API_URL}/batch-report/registered/${enc}`,
-          `${
-            import.meta.env.VITE_API_URL
-          }/batch-report/registered?batchId=${enc}`,
-          // fallback ke generic /batch-report/:id
+          `${import.meta.env.VITE_API_URL}/batch-report/registered?batchId=${enc}`,
           `${import.meta.env.VITE_API_URL}/batch-report/${enc}`,
-          `${import.meta.env.VITE_API_URL}/batch-report/finished/${enc}`
+          `${import.meta.env.VITE_API_URL}/batch-report/finished/${enc}`,
         );
       }
 
       endpoints.push(
         `${import.meta.env.VITE_API_URL}/batch-report?batchId=${enc}`,
-        `${import.meta.env.VITE_API_URL}/batch-report`
+        `${import.meta.env.VITE_API_URL}/batch-report`,
       );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,18 +100,15 @@ export default function BatchSelesaiInfo() {
       for (const url of endpoints) {
         try {
           const r = await fetch(url);
-          if (!r.ok) {
-            // skip if 404/500 etc
-            continue;
-          }
+          if (!r.ok) continue;
           const j = await r.json();
           const candidate = Array.isArray(j)
             ? j
             : Array.isArray(j.data)
-            ? j.data
-            : Array.isArray(j.rows)
-            ? j.rows
-            : null;
+              ? j.data
+              : Array.isArray(j.rows)
+                ? j.rows
+                : null;
           if (candidate !== null) {
             if (candidate.length > 0) {
               rows = candidate;
@@ -131,7 +118,6 @@ export default function BatchSelesaiInfo() {
             }
           }
 
-          // handle case single object (maybe one record)
           if (j && typeof j === "object" && Object.keys(j).length > 0) {
             if (j.LINEN_ID || j.EPC) {
               rows = [j];
@@ -139,15 +125,13 @@ export default function BatchSelesaiInfo() {
             }
           }
         } catch (e) {
-          // ignore and try next endpoint
-          // console.debug(`endpoint ${url} failed:`, e);
           continue;
         }
       }
 
       if (!rows) {
         throw new Error(
-          "Tidak dapat menemukan detail batch pada endpoint yang dicoba."
+          "Tidak dapat menemukan detail batch pada endpoint yang dicoba.",
         );
       }
 
@@ -155,7 +139,13 @@ export default function BatchSelesaiInfo() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const normalized: LinenEntry[] = rows.map((x: any) => ({
         LINEN_ID: x.LINEN_ID ?? x.EPC ?? x.epc ?? x.linen_id ?? "",
-        LINEN_TYPE: x.LINEN_TYPE ?? x.Tipe ?? x.tipe ?? x.type ?? "Unknown",
+        LINEN_TYPE:
+          x.LINEN_TYPE ??
+          x.Tipe ??
+          x.tipe ??
+          x.type ??
+          x.LINEN_TYPE ??
+          "Unknown",
         LINEN_MAX_CYCLE: x.LINEN_MAX_CYCLE ?? x.MaxCuci ?? x.max_cycle ?? null,
         LINEN_TOTAL_WASH:
           x.LINEN_TOTAL_WASH ?? x.LINEN_TOTAL_WASH ?? x.total_wash ?? 0,
@@ -165,7 +155,6 @@ export default function BatchSelesaiInfo() {
 
       setDetailRows(normalized);
       setSelected(batchId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("fetch /batch-report error:", err);
       setDetailError(err?.message ?? "Gagal memuat detail batch");
@@ -181,8 +170,8 @@ export default function BatchSelesaiInfo() {
     detailRows.forEach((r) =>
       m.set(
         r.LINEN_TYPE ?? "Unknown",
-        (m.get(r.LINEN_TYPE ?? "Unknown") ?? 0) + 1
-      )
+        (m.get(r.LINEN_TYPE ?? "Unknown") ?? 0) + 1,
+      ),
     );
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1]); // descending
   }, [detailRows]);
@@ -190,7 +179,7 @@ export default function BatchSelesaiInfo() {
   const summaryByStatus = useMemo(() => {
     const m = new Map<string, number>();
     detailRows.forEach((r) => {
-      const s = (r.Status ?? "Bersih").toString(); // fallback "Bersih"
+      const s = (r.Status ?? "Bersih").toString();
       m.set(s, (m.get(s) ?? 0) + 1);
     });
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
@@ -203,7 +192,7 @@ export default function BatchSelesaiInfo() {
     return detailRows.filter(
       (r) =>
         (r.LINEN_ID ?? "").toLowerCase().includes(q) ||
-        (r.LINEN_TYPE ?? "").toLowerCase().includes(q)
+        (r.LINEN_TYPE ?? "").toLowerCase().includes(q),
     );
   }, [detailRows, search]);
 
@@ -222,24 +211,14 @@ export default function BatchSelesaiInfo() {
       .map(
         (d, idx) => `
       <tr>
-        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${
-          idx + 1
-        }</td>
+        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${idx + 1}</td>
         <td style="padding:6px;border:1px solid #ccc;">${d.LINEN_ID}</td>
-        <td style="padding:6px;border:1px solid #ccc;">${
-          d.LINEN_TYPE ?? ""
-        }</td>
-        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${
-          d.Status ?? ""
-        }</td>
-        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${
-          d.LINEN_MAX_CYCLE ?? ""
-        }</td>
-        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${
-          d.LINEN_TOTAL_WASH ?? 0
-        }</td>
+        <td style="padding:6px;border:1px solid #ccc;">${d.LINEN_TYPE ?? ""}</td>
+        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${d.Status ?? ""}</td>
+        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${d.LINEN_MAX_CYCLE ?? ""}</td>
+        <td style="padding:6px;border:1px solid #ccc;text-align:center;">${d.LINEN_TOTAL_WASH ?? 0}</td>
       </tr>
-    `
+    `,
       )
       .join("");
 
@@ -296,74 +275,94 @@ export default function BatchSelesaiInfo() {
   };
 
   return (
-    <div className="container-fluid mt-3">
-      <h2 className="mb-3">Informasi Batch</h2>
+    <div className="p-4">
+      <h2 className="text-white text-2xl font-semibold mb-4">
+        Informasi Batch
+      </h2>
 
-      <div className="row g-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* LEFT: batch list */}
-        <div className="col-lg-4">
+        <div className="lg:col-span-4">
           <div
-            className="surface p-2 d-flex flex-column"
-            style={{
-              height: 760,
-              minHeight: 0,
-            }}
+            className="flex flex-col bg-white/4 backdrop-blur-md rounded-xl border border-emerald-400/10 h-[760px] overflow-hidden"
+            role="region"
+            aria-label="Daftar Batch"
           >
             {/* header */}
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="mb-0">Daftar Batch</h6>
-              <small className="text-muted">{batchList.length} items</small>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
+              <div>
+                <h6 className="text-white font-medium">Daftar Batch</h6>
+                <div className="text-xs text-gray-300">
+                  {batchList.length} items
+                </div>
+              </div>
             </div>
 
             {/* loading / error */}
-            {loadingBatches && (
-              <div className="text-center py-3">Memuat batch...</div>
-            )}
-            {batchError && (
-              <div className="alert alert-warning py-1">{batchError}</div>
-            )}
+            <div className="px-4 py-2">
+              {loadingBatches && (
+                <div className="text-center py-3 text-gray-300">
+                  Memuat batch...
+                </div>
+              )}
+              {batchError && (
+                <div className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 rounded-md px-3 py-2 text-sm">
+                  {batchError}
+                </div>
+              )}
+            </div>
 
             {/* area tabel: ambil ruang tersisa dan scroll jika overflow */}
-            <div
-              className="table-responsive flex-grow-1"
-              style={{ minHeight: 0, overflowY: "auto" }}
-            >
-              <table className="table table-sm table-hover mb-0">
-                <thead className="table-light small">
-                  <tr>
-                    <th>BatchID</th>
-                    <th className="text-center">Status</th>
-                    <th className="text-end">Aksi</th>
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <table className="min-w-full text-sm">
+                <thead className="sticky top-0 bg-black/25 backdrop-blur-md">
+                  <tr className="text-left">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                      BatchID
+                    </th>
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-300 text-center">
+                      Status
+                    </th>
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-300 text-right">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {batchList.length === 0 && !loadingBatches && (
                     <tr>
-                      <td colSpan={3} className="text-center text-muted py-3">
+                      <td
+                        colSpan={3}
+                        className="px-3 py-6 text-center text-gray-400"
+                      >
                         Tidak ada batch
                       </td>
                     </tr>
                   )}
+
                   {batchList.map((b) => (
                     <tr
                       key={b.batch_id}
-                      className={
-                        selected === b.batch_id ? "table-primary" : undefined
-                      }
+                      className={`border-b border-white/6 ${
+                        selected === b.batch_id ? "bg-emerald-600/10" : ""
+                      }`}
                     >
-                      <td style={{ maxWidth: 180, wordBreak: "break-word" }}>
+                      <td className="px-3 py-3 max-w-[180px] break-words text-gray-100">
                         {b.batch_id}
                       </td>
-                      <td className="text-center">
-                        <span className="badge bg-light text-dark">
+
+                      <td className="px-3 py-3 text-center">
+                        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-white/6 text-gray-200">
                           {b.status ?? "-"}
                         </span>
                       </td>
-                      <td className="text-end">
-                        <div className="d-flex gap-1 justify-content-end">
+
+                      <td className="px-3 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <button
-                            className="btn btn-sm btn-outline-primary"
                             onClick={() => handleLihat(b.batch_id)}
+                            className="text-sm px-3 py-1 rounded-md border border-emerald-400/20 text-emerald-200 hover:bg-emerald-600/10 transition"
                           >
                             Lihat
                           </button>
@@ -375,55 +374,53 @@ export default function BatchSelesaiInfo() {
               </table>
             </div>
 
-            <div className="mt-2 text-end small text-muted">
-              Total: <strong>{batchList.length}</strong>
+            <div className="px-4 py-3 text-right text-xs text-gray-300">
+              Total: <strong className="text-white">{batchList.length}</strong>
             </div>
           </div>
         </div>
 
         {/* RIGHT: detail panel */}
-        <div className="col-lg-8">
+        <div className="lg:col-span-8">
           {!selected && (
-            <div className="surface p-4 text-center">
-              <p className="mb-0 text-muted">
+            <div className="bg-white/4 backdrop-blur-md rounded-xl border border-emerald-400/10 p-6">
+              <p className="mb-0 text-gray-300 text-center">
                 Pilih sebuah batch di kiri untuk melihat detail ringkas.
               </p>
             </div>
           )}
 
           {selected && (
-            <div className="surface p-3">
-              <div className="d-flex justify-content-between align-items-start mb-3">
+            <div className="bg-white/4 backdrop-blur-md rounded-xl border border-emerald-400/10 p-4">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-3">
                 <div>
-                  <h5 className="mb-1">
+                  <h5 className="text-white text-lg font-semibold mb-1">
                     Batch <strong>{selected}</strong>
                   </h5>
-                  <div className="small text-muted">
+                  <div className="text-sm text-gray-300">
                     Mulai:{" "}
                     {formatDateTime(
                       batchList.find((b) => b.batch_id === selected)
-                        ?.waktu_mulai
+                        ?.waktu_mulai,
                     )}
-                    {" • "}
-                    Selesai:{" "}
+                    {" • "}Selesai:{" "}
                     {formatDateTime(
                       batchList.find((b) => b.batch_id === selected)
-                        ?.waktu_selesai ?? undefined
+                        ?.waktu_selesai ?? undefined,
                     )}
-                    {" • "}
-                    Durasi:{" "}
+                    {" • "}Durasi:{" "}
                     {computeDuration(
                       batchList.find((b) => b.batch_id === selected)
                         ?.waktu_mulai,
                       batchList.find((b) => b.batch_id === selected)
-                        ?.waktu_selesai
+                        ?.waktu_selesai,
                     )}
                   </div>
                 </div>
 
-                <div className="d-flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
-                    className="btn btn-outline-secondary"
+                    className="px-3 py-1 rounded-md border border-white/8 text-gray-200 hover:bg-white/5 transition"
                     onClick={() => {
                       setSelected(null);
                       setDetailRows([]);
@@ -431,8 +428,13 @@ export default function BatchSelesaiInfo() {
                   >
                     Tutup
                   </button>
+
                   <button
-                    className="btn btn-success"
+                    className={`px-3 py-1 rounded-md font-semibold transition ${
+                      detailRows.length === 0
+                        ? "bg-emerald-400/30 text-black cursor-not-allowed"
+                        : "bg-emerald-400 text-black hover:bg-emerald-300"
+                    }`}
                     onClick={handlePrint}
                     disabled={detailRows.length === 0}
                   >
@@ -442,53 +444,54 @@ export default function BatchSelesaiInfo() {
               </div>
 
               {/* Summary tiles: total and counts */}
-              <div className="d-flex gap-3 flex-wrap mb-3">
-                <div
-                  className="p-3 border rounded text-center"
-                  style={{ minWidth: 140 }}
-                >
-                  <div className="small text-muted">Total Linen</div>
-                  <div style={{ fontSize: 20, fontWeight: 700 }}>
+              <div className="flex flex-wrap gap-3 mb-3">
+                <div className="flex-1 min-w-[140px] bg-white/6 border border-white/6 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-300">Total Linen</div>
+                  <div className="text-2xl font-extrabold text-white">
                     {totalLinen}
                   </div>
                 </div>
 
-                <div className="p-3 border rounded" style={{ minWidth: 160 }}>
-                  <div className="small text-muted">Per Tipe (top 3)</div>
-                  <div>
+                <div className="min-w-[160px] bg-white/6 border border-white/6 rounded-lg p-3">
+                  <div className="text-xs text-gray-300">Per Tipe (top 3)</div>
+                  <div className="mt-2 space-y-1">
                     {summaryByType.slice(0, 3).map(([t, cnt]) => (
-                      <div key={t} className="d-flex justify-content-between">
-                        <div style={{ fontSize: 13 }}>{t}</div>
-                        <div className="text-muted">{cnt}</div>
+                      <div key={t} className="flex justify-between text-sm">
+                        <div className="text-gray-100">{t}</div>
+                        <div className="text-gray-300">{cnt}</div>
                       </div>
                     ))}
                     {summaryByType.length === 0 && (
-                      <div className="text-muted small">Tidak ada data</div>
+                      <div className="text-gray-400 text-sm">
+                        Tidak ada data
+                      </div>
                     )}
                   </div>
                 </div>
 
-                <div className="p-3 border rounded" style={{ minWidth: 160 }}>
-                  <div className="small text-muted">Status</div>
-                  <div>
+                <div className="min-w-[160px] bg-white/6 border border-white/6 rounded-lg p-3">
+                  <div className="text-xs text-gray-300">Status</div>
+                  <div className="mt-2 space-y-1">
                     {summaryByStatus.map(([s, cnt]) => (
-                      <div key={s} className="d-flex justify-content-between">
-                        <div style={{ fontSize: 13 }}>{s}</div>
-                        <div className="text-muted">{cnt}</div>
+                      <div key={s} className="flex justify-between text-sm">
+                        <div className="text-gray-100">{s}</div>
+                        <div className="text-gray-300">{cnt}</div>
                       </div>
                     ))}
                     {summaryByStatus.length === 0 && (
-                      <div className="text-muted small">Tidak ada data</div>
+                      <div className="text-gray-400 text-sm">
+                        Tidak ada data
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Search + Table */}
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <div className="input-group" style={{ maxWidth: 360 }}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                <div className="w-full sm:w-auto">
                   <input
-                    className="form-control form-control-sm"
+                    className="w-full sm:w-[360px] bg-transparent border border-white/8 rounded-md px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:ring-0 focus:border-emerald-400/50"
                     placeholder="Cari EPC atau tipe..."
                     value={search}
                     onChange={(e) => {
@@ -497,56 +500,86 @@ export default function BatchSelesaiInfo() {
                     }}
                   />
                 </div>
-                <div className="small text-muted">
-                  Menampilkan {filteredRows.length} hasil
+
+                <div className="text-sm text-gray-300">
+                  Menampilkan{" "}
+                  <strong className="text-white">{filteredRows.length}</strong>{" "}
+                  hasil
                 </div>
               </div>
 
               {loadingDetails && (
-                <div className="text-center py-3">Memuat detail...</div>
+                <div className="text-center py-3 text-gray-300">
+                  Memuat detail...
+                </div>
               )}
               {detailError && (
-                <div className="alert alert-warning py-1">{detailError}</div>
+                <div className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 rounded-md px-3 py-2 text-sm mb-2">
+                  {detailError}
+                </div>
               )}
 
-              <div style={{ maxHeight: 380, overflowY: "auto" }}>
-                <table className="table table-sm table-striped align-middle mb-0">
-                  <thead className="table-light small text-center">
-                    <tr>
-                      <th style={{ width: 48 }}>No</th>
-                      <th style={{ minWidth: 180 }}>EPC</th>
-                      <th>Tipe</th>
-                      <th className="text-center">Status</th>
-                      <th className="text-center">Max Cycle</th>
-                      <th className="text-center">Total Wash</th>
+              <div className="max-h-[380px] overflow-y-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 bg-black/25 backdrop-blur-md">
+                    <tr className="text-center">
+                      <th
+                        className="px-3 py-2 text-xs font-semibold text-gray-300"
+                        style={{ width: 48 }}
+                      >
+                        No
+                      </th>
+                      <th
+                        className="px-3 py-2 text-xs font-semibold text-gray-300"
+                        style={{ minWidth: 180 }}
+                      >
+                        EPC
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                        Tipe
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                        Status
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                        Max Cycle
+                      </th>
+                      <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                        Total Wash
+                      </th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {pagedRows.length === 0 && !loadingDetails ? (
                       <tr>
-                        <td colSpan={6} className="text-center text-muted py-3">
+                        <td
+                          colSpan={6}
+                          className="px-3 py-6 text-center text-gray-400"
+                        >
                           Tidak ada data
                         </td>
                       </tr>
                     ) : (
                       pagedRows.map((d, idx) => (
-                        <tr key={d.LINEN_ID || `${idx}`}>
-                          <td className="text-center">
+                        <tr
+                          key={d.LINEN_ID || `${idx}`}
+                          className="border-b border-white/6"
+                        >
+                          <td className="px-3 py-2 text-center">
                             {(page - 1) * pageSize + idx + 1}
                           </td>
-                          <td
-                            style={{ maxWidth: 260, wordBreak: "break-word" }}
-                          >
+                          <td className="px-3 py-2 break-words max-w-[260px]">
                             {d.LINEN_ID}
                           </td>
-                          <td>{d.LINEN_TYPE}</td>
-                          <td className="text-center">
+                          <td className="px-3 py-2">{d.LINEN_TYPE}</td>
+                          <td className="px-3 py-2 text-center">
                             {d.Status ?? "Bersih"}
                           </td>
-                          <td className="text-center">
+                          <td className="px-3 py-2 text-center">
                             {d.LINEN_MAX_CYCLE ?? "-"}
                           </td>
-                          <td className="text-center">
+                          <td className="px-3 py-2 text-center">
                             {d.LINEN_TOTAL_WASH ?? 0}
                           </td>
                         </tr>
@@ -557,29 +590,35 @@ export default function BatchSelesaiInfo() {
               </div>
 
               {/* Pagination */}
-              <div className="d-flex justify-content-between align-items-center mt-2">
-                <div className="small text-muted">
+              <div className="flex items-center justify-between gap-3 mt-3">
+                <div className="text-sm text-gray-300">
                   Page {page} / {totalPages}
                 </div>
-                <div>
-                  <div className="btn-group btn-group-sm" role="group">
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page <= 1}
-                    >
-                      Prev
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      disabled={page >= totalPages}
-                    >
-                      Next
-                    </button>
-                  </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className={`px-3 py-1 rounded-md border text-sm transition ${
+                      page <= 1
+                        ? "border-white/6 text-gray-500 cursor-not-allowed bg-white/2"
+                        : "border-white/10 text-white hover:bg-white/5"
+                    }`}
+                  >
+                    Prev
+                  </button>
+
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className={`px-3 py-1 rounded-md border text-sm transition ${
+                      page >= totalPages
+                        ? "border-white/6 text-gray-500 cursor-not-allowed bg-white/2"
+                        : "border-white/10 text-white hover:bg-white/5"
+                    }`}
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>

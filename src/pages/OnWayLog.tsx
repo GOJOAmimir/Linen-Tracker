@@ -15,7 +15,7 @@ const LogOutHistory: React.FC = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/inventory/storage_out_log`
+          `${import.meta.env.VITE_API_URL}/inventory/storage_out_log`,
         );
 
         if (res.data.success && Array.isArray(res.data.storage_out_log)) {
@@ -37,36 +37,41 @@ const LogOutHistory: React.FC = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-600">
+      <div className="flex justify-center items-center min-h-screen text-gray-400">
         Memuat data log storage...
       </div>
     );
 
   return (
-    <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Log Storage</h2>
+    <div className="p-6 text-gray-200">
+      <h2 className="text-3xl font-bold mb-6">Log Storage Out</h2>
 
       {data.length === 0 ? (
-        <div className="text-gray-500">Tidak ada log ditemukan</div>
+        <div className="text-gray-400">Tidak ada log ditemukan</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-bordered table-hover align-middle mb-0">
-            <thead className="bg-blue-100 text-gray-800">
-              <tr className="text-center">
-                <th className="py-3 px-4 text-left">Penerima</th>
-                <th className="py-3 px-4 text-left">Linen ID</th>
-                <th className="py-3 px-4 text-left">Waktu Discan</th>
+        <div className="overflow-x-auto rounded-xl border border-white/20 backdrop-blur-lg bg-white/5">
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr className="border-b border-white/20 text-left text-sm uppercase tracking-wider text-gray-300">
+                <th className="px-6 py-4">Penerima</th>
+                <th className="px-6 py-4">Linen ID</th>
+                <th className="px-6 py-4">Waktu Discan</th>
               </tr>
             </thead>
+
             <tbody>
               {data.map((item, index) => (
                 <tr
                   key={index}
-                  className="border-t hover:bg-gray-50 text-center"
+                  className="border-b border-white/10 hover:bg-white/10 transition-colors"
                 >
-                  <td className="py-2 px-4 font-mono">{item.storage_pic}</td>
-                  <td className="py-2 px-4">{item.linen_id}</td>
-                  <td className="py-2 px-4">{item.storage_time_out}</td>
+                  <td className="px-5 py-3 font-mono text-emerald-300">
+                    {item.storage_pic}
+                  </td>
+                  <td className="px-6 py-4 text-sm">{item.linen_id}</td>
+                  <td className="px-6 py-4 text-sm text-gray-300">
+                    {item.storage_time_out}
+                  </td>
                 </tr>
               ))}
             </tbody>

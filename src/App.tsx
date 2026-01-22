@@ -1,8 +1,7 @@
 // App.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
@@ -22,60 +21,93 @@ import StorageDetailPage from "./pages/StorageDetailPage";
 import StorageLog from "./pages/StorageLog";
 import OnWayLog from "./pages/OnWayLog";
 
+type LinenItem = {
+  EPC: string;
+  Tipe: string;
+  Status: string;
+};
+
 function App() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({
     intransit: 0,
     dicuci: 0,
     bersih: 0,
     hilang: 0,
+    dipakai: 0,
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
 
   useEffect(() => {
-    const fetchCounts = () =>
-      fetch(`${import.meta.env.VITE_API_URL}/dashboard/status-summary`)
-        .then((r) => r.json())
-        .then((resJson) => {
-          if (resJson.success && resJson.data) {
-            setStatusCounts(resJson.data);
-          } else {
-            console.warn("Unexpected status summary response:", resJson);
-          }
-        })
-        .catch((err) => console.error("Status summary error:", err));
+    const handleResize = () => {
+      const mobile = window.innerWidth < 500;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(false);
+    };
 
-    fetchCounts();
-    const id = setInterval(fetchCounts, 60_000);
-    return () => clearInterval(id);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://100.108.196.112:3001");
+    wsRef.current = ws;
+
+    ws.onmessage = (msg) => {
+      try {
+        const json = JSON.parse(msg.data);
+
+        if (json.type === "linen_status") {
+          const list = json.data as LinenItem[];
+
+          setStatusCounts({
+            bersih: list.filter((x) => x.Status === "Bersih").length,
+            dicuci: list.filter((x) => x.Status === "Dicuci").length,
+            intransit: list.filter((x) => x.Status === "InTransit").length,
+            dipakai: list.filter((x) => x.Status === "Dipakai").length,
+            hilang: list.filter((x) => x.Status === "Hilang").length,
+          });
+        }
+      } catch (err) {
+        console.error("WS parse error:", err);
+      }
+    };
+
+    return () => ws.close();
   }, []);
 
   return (
     <Router>
       <Routes>
-        {/* Route login tidak perlu proteksi */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Semua route lain diproteksi */}
         <Route
           path="*"
           element={
             <ProtectedRoute>
-              <div className="d-flex">
-                <Sidebar isOpen={sidebarOpen} />
+              <div className="flex min-h-screen">
+                {/* Sidebar */}
+                <Sidebar
+                  isOpen={sidebarOpen}
+                  onClose={() => setSidebarOpen(false)}
+                />
+
+                {/* Main content */}
                 <div
-                  className="flex-grow-1"
+                  className="flex flex-col flex-1 transition-all duration-300"
                   style={{
-                    marginLeft: sidebarOpen ? 250 : 60,
-                    transition: "margin-left 0.3s",
-                    width: "100%",
+                    marginLeft: isMobile ? 0 : sidebarOpen ? 250 : 60,
                   }}
                 >
                   <Navbar
-                    toggleSidebar={() => setSidebarOpen((prev) => !prev)}
+                    toggleSidebar={() => setSidebarOpen((p) => !p)}
                     sidebarOpen={sidebarOpen}
                   />
-                  <div className="pt-4 px-3">
+
+                  {/* Page container */}
+                  <main className="flex-1 px-4 pt-4 overflow-y-auto">
                     <Routes>
                       <Route
                         path="/"
@@ -115,7 +147,7 @@ function App() {
                         element={<OnWayLog />}
                       />
                     </Routes>
-                  </div>
+                  </main>
                 </div>
               </div>
             </ProtectedRoute>

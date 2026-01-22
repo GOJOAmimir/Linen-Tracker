@@ -16,13 +16,12 @@ const LogHistory: React.FC = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/inventory/storage_keep_log`
+          `${import.meta.env.VITE_API_URL}/inventory/storage_keep_log`,
         );
 
         if (res.data.success && Array.isArray(res.data.storage_keep_log)) {
           setData(res.data.storage_keep_log);
         } else {
-          console.warn("Format data tidak sesuai:", res.data);
           setData([]);
         }
       } catch (err) {
@@ -36,41 +35,71 @@ const LogHistory: React.FC = () => {
     fetchData();
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-600">
+      <div className="min-h-screen flex items-center justify-center text-gray-300">
         Memuat data log storage...
       </div>
     );
+  }
 
   return (
-    <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Log Storage</h2>
+    <div className="min-h-screen p-6 md:p-10 text-white">
+      <h2 className="text-2xl md:text-3xl font-semibold mb-6">Log Storage</h2>
 
       {data.length === 0 ? (
-        <div className="text-gray-500">Tidak ada log ditemukan</div>
+        <div className="text-gray-400">Tidak ada log ditemukan</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-bordered table-hover align-middle mb-0">
-            <thead className="bg-blue-100 text-gray-800">
-              <tr>
-                <th className="py-3 px-4 text-left">Penerima</th>
-                <th className="py-3 px-4 text-left">Linen ID</th>
-                <th className="py-3 px-4 text-left">Storage Type</th>
-                <th className="py-3 px-4 text-left">Waktu Masuk</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => (
-                <tr key={index} className="border-t hover:bg-gray-50">
-                  <td className="py-2 px-4 font-mono">{item.storage_pic}</td>
-                  <td className="py-2 px-4">{item.linen_id}</td>
-                  <td className="py-2 px-4">{item.storage_type}</td>
-                  <td className="py-2 px-4">{item.storage_time_in}</td>
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(52,211,153,0.18)",
+            boxShadow:
+              "0 0 0 1px rgba(52,211,153,0.08), 0 20px 40px rgba(0,0,0,0.4)",
+          }}
+        >
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-gray-300 uppercase text-xs tracking-wide">
+                  <th className="px-5 py-4 text-left">Penerima</th>
+                  <th className="px-5 py-4 text-left">Linen ID</th>
+                  <th className="px-5 py-4 text-left">Storage Type</th>
+                  <th className="px-5 py-4 text-left">Waktu Masuk</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {data.map((item, index) => (
+                  <tr
+                    key={index}
+                    className="border-t border-white/5 hover:bg-white/5 transition"
+                  >
+                    <td className="px-5 py-3 font-mono text-emerald-300">
+                      {item.storage_pic}
+                    </td>
+
+                    <td className="px-5 py-3 text-white">{item.linen_id}</td>
+
+                    <td className="px-5 py-3 text-gray-300">
+                      {item.storage_type}
+                    </td>
+
+                    <td className="px-5 py-3 text-gray-400 text-sm">
+                      {new Date(item.storage_time_in).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* footer glow line */}
+          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
         </div>
       )}
     </div>

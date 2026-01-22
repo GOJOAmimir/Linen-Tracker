@@ -2,7 +2,6 @@ import StatusSummary from "../components/StatusSummary";
 import BatchSummary from "../components/BatchSummary";
 import LinenByDay from "../components/LinenByDay";
 import TopCycles from "../components/TopCycle";
-import { BsHouseDoorFill } from "react-icons/bs";
 
 type Props = {
   statusCounts: {
@@ -10,35 +9,30 @@ type Props = {
     dicuci: number;
     bersih: number;
     hilang: number;
-    keluar: number;
+    dipakai?: number;
   };
 };
 
 export default function Dashboard({ statusCounts }: Props) {
   return (
-    <div>
-      <div className="d-flex align-items-end mb-4">
-        <h2 className="mb-0">
-          <BsHouseDoorFill size={25} className="me-2" />
-          Dashboard
-        </h2>
-      </div>
-
+    <div className="space-y-6">
+      {/* Status cards */}
       <StatusSummary counts={statusCounts} />
 
-      <div className="row mt-4 g-3 align-items-stretch">
-        <div className="col-md-6">
+      {/* Middle grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <div className="h-full flex flex-col rounded-xl">
           <BatchSummary />
         </div>
-        <div className="col-md-6">
+
+        <div className="h-full flex flex-col rounded-xl">
           <LinenByDay />
         </div>
       </div>
 
-      <div className="row mt-3">
-        <div className="col-12">
-          <TopCycles />
-        </div>
+      {/* Bottom section */}
+      <div className="w-full">
+        <TopCycles />
       </div>
     </div>
   );

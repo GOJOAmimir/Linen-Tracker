@@ -2,7 +2,7 @@ import { pool } from "../db.js";
 
 export const LatestBatchController = async (req, res) => {
   const sql = `
-    SELECT * FROM (
+    WITH merged_batches AS (
       SELECT 
         bi.BATCH_IN_ID AS id,
         bi.BATCH_IN_DATETIME AS waktu,
@@ -22,14 +22,26 @@ export const LatestBatchController = async (req, res) => {
       FROM batch_out bo
       LEFT JOIN batch_out_details bod ON bo.BATCH_OUT_ID = bod.BATCH_OUT_ID
       GROUP BY bo.BATCH_OUT_ID, bo.BATCH_OUT_DATETIME
-    ) AS all_batches
+    ),
+    dedup AS (
+      SELECT 
+        id,
+        waktu,
+        totalLinen,
+        Status,
+        ROW_NUMBER() OVER (PARTITION BY id ORDER BY waktu DESC) AS rn
+      FROM merged_batches
+    )
+    SELECT id, waktu, totalLinen, Status
+    FROM dedup
+    WHERE rn = 1
     ORDER BY waktu DESC
-    LIMIT 8
+    LIMIT 8;
   `;
 
   try {
     const [rows] = await pool.query(sql);
-    res.json(rows);
+    res.json({ success: true, data: rows });
   } catch (err) {
     console.error("/batches/latest error:", err.message);
     res.status(500).json({ error: "Gagal mengambil data batch terbaru" });

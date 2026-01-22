@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
-const path = require("path");
+import path from "path";
 
 import missingRoutes from "./routes/rHilang.js";
 import loginHandler from "./routes/rlogin.js";
@@ -50,7 +50,7 @@ app.use(
     origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.options(
@@ -59,7 +59,7 @@ app.options(
     origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.use(express.json());
@@ -267,12 +267,12 @@ app.get("/batch-report/registered/:batchInId", async (req, res) => {
   }
 });
 
-const frontendPath = path.join(__dirname, "client", "dist"); // or "build"
-app.use(express.static(frontendPath));
+// const frontendPath = path.join(__dirname, "client", "dist"); // or "build"
+// app.use(express.static(frontendPath));
 
-app.get((req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
+// app.get((req, res) => {
+//   res.sendFile(path.join(frontendPath, "index.html"));
+// });
 
 /*───────────────────────────────────────────────────────────────*/
 /* 4. Start server                                              */
@@ -281,4 +281,3 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀  API server listening on port ${PORT}`);
 });
- 

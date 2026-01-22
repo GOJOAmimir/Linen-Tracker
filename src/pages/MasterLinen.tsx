@@ -10,9 +10,11 @@ import {
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
+// ensure pdfMake vfs available
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (!(pdfMake as any).vfs) {
-  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {}; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? {};
 }
 
 type Linen = {
@@ -79,6 +81,7 @@ export default function MasterLinen() {
       setTipe("");
       setMaxCycle(20);
       fetchData();
+      // keep legacy close button click (if present)
       (document.getElementById("closeModalBtn") as HTMLButtonElement)?.click();
     } catch (err) {
       console.error("Submit error:", err);
@@ -88,7 +91,7 @@ export default function MasterLinen() {
   // Toggle pilihan untuk delete multiple
   const toggleSelection = (epc: string) => {
     setSelectedEpcs((prev) =>
-      prev.includes(epc) ? prev.filter((id) => id !== epc) : [...prev, epc]
+      prev.includes(epc) ? prev.filter((id) => id !== epc) : [...prev, epc],
     );
   };
 
@@ -181,13 +184,14 @@ export default function MasterLinen() {
       ? [
           {
             id: "select",
-            header: () => <span>Pilih</span>,
+            header: () => <span className="text-sm">Pilih</span>,
             cell: ({ row }: { row: Row<Linen> }) => (
               <div className="text-center">
                 <input
                   type="checkbox"
                   checked={selectedEpcs.includes(row.original.LINEN_ID)}
                   onChange={() => toggleSelection(row.original.LINEN_ID)}
+                  className="h-4 w-4 accent-emerald-400"
                 />
               </div>
             ),
@@ -230,54 +234,62 @@ export default function MasterLinen() {
   });
 
   return (
-    <div className="container-fluid mt-4">
-      <h2 className="mb-3 text-start">Master Linen</h2>
+    <div className="p-4">
+      <h2 className="text-2xl font-semibold text-white mb-3">Master Linen</h2>
 
       {/* Action & Search Row */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-        {/* Action buttons */}
-        <div className="d-flex gap-2">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div className="flex flex-wrap gap-2 items-center">
           <button
-            className="btn btn-success"
+            className="px-3 py-2 rounded-md bg-emerald-400 text-black font-medium hover:bg-emerald-300 transition"
+            // legacy attributes left as-is (Bootstrap not used) — you can wire modal open logic later
             data-bs-toggle="modal"
             data-bs-target="#addLinenModal"
+            type="button"
           >
             + Tambah
           </button>
 
           <button
-            className={`btn ${
-              editMode ? "btn-warning" : "btn-outline-secondary"
+            className={`px-3 py-2 rounded-md transition ${
+              editMode
+                ? "bg-yellow-400 text-black hover:bg-yellow-300"
+                : "border border-white/10 text-gray-200 hover:bg-white/5"
             }`}
             onClick={() => {
               setEditMode(!editMode);
               setSelectedEpcs([]);
             }}
+            type="button"
           >
             {editMode ? "Selesai" : "Edit"}
           </button>
 
           {editMode && selectedEpcs.length > 0 && (
-            <button className="btn btn-danger" onClick={handleDelete}>
+            <button
+              className="px-3 py-2 rounded-md bg-rose-500 text-white hover:bg-rose-400 transition"
+              onClick={handleDelete}
+              type="button"
+            >
               Hapus ({selectedEpcs.length})
             </button>
           )}
         </div>
 
-        {/* Search & Sort container (Search on top, Sort + Print below aligned right) */}
-        <div className="d-flex flex-column align-items-end gap-2">
+        {/* Search & Sort container */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
           {/* Search */}
           <input
             type="text"
-            className="form-control"
+            className="px-3 py-2 rounded-md bg-white/5 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             placeholder="Cari linen..."
             style={{ maxWidth: 300 }}
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
+            aria-label="Cari linen"
           />
 
-          {/* Sort + Print row */}
-          <div className="d-flex gap-2">
+          <div className="flex items-center gap-2">
             <select
               value={
                 sorting[0]
@@ -299,16 +311,8 @@ export default function MasterLinen() {
                     : "asc";
                 setSorting([{ id, desc: dir === "desc" }]);
               }}
-              className="form-select"
-              style={{
-                minWidth: 200,
-                borderRadius: 8,
-                backgroundColor: "#fbfbfb",
-                color: "#222",
-                border: "1px solid #ddd",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-                cursor: "pointer",
-              }}
+              className="px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none"
+              aria-label="Urutkan"
             >
               <option value="">Urutkan...</option>
               <option value="LINEN_TOTAL_WASH_desc">Siklus tertinggi</option>
@@ -320,9 +324,10 @@ export default function MasterLinen() {
             </select>
 
             <button
-              className="btn btn-outline-primary"
+              className="px-3 py-2 rounded-md border border-white/10 text-gray-100 hover:bg-white/5 transition"
               onClick={handlePrintMasterLinen}
               title="Cetak / Export ke PDF"
+              type="button"
             >
               Print
             </button>
@@ -330,121 +335,173 @@ export default function MasterLinen() {
         </div>
       </div>
 
-      {/* Modal Tambah Linen */}
+      {/* Modal (UI-only Tailwind markup) */}
       <div
-        className="modal fade"
         id="addLinenModal"
-        tabIndex={-1}
+        className="fixed inset-0 z-40 hidden items-center justify-center px-4"
+        role="dialog"
+        aria-modal="true"
         aria-labelledby="addLinenModalLabel"
-        aria-hidden="true"
       >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <form onSubmit={handleSubmit}>
-              <div className="modal-header">
-                <h5 className="modal-title" id="addLinenModalLabel">
-                  Tambah Linen Baru
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                  id="closeModalBtn"
-                ></button>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <div className="relative max-w-lg w-full bg-[#1f1f1f] border border-white/6 rounded-lg shadow-xl overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h5
+                id="addLinenModalLabel"
+                className="text-lg font-semibold text-white"
+              >
+                Tambah Linen Baru
+              </h5>
+              <button
+                id="closeModalBtn"
+                type="button"
+                className="text-gray-300 hover:text-white rounded-md p-1"
+                // keep as no-op — bootstrap not used; external code may call this element by id
+                onClick={(e) => {
+                  // hide modal if it was opened by adding a 'hidden' toggle (used when integrating)
+                  const root = document.getElementById("addLinenModal");
+                  if (root) root.classList.add("hidden");
+                }}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-200 mb-1">EPC</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={epc}
+                  onChange={(e) => setEpc(e.target.value)}
+                  required
+                />
               </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">EPC</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={epc}
-                    onChange={(e) => setEpc(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Tipe Linen</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={tipe}
-                    onChange={(e) => setTipe(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Max Cycle</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={maxCycle}
-                    onChange={(e) => setMaxCycle(parseInt(e.target.value))}
-                    required
-                    min={1}
-                  />
-                </div>
+
+              <div>
+                <label className="block text-sm text-gray-200 mb-1">
+                  Tipe Linen
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={tipe}
+                  onChange={(e) => setTipe(e.target.value)}
+                  required
+                />
               </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Simpan
-                </button>
+
+              <div>
+                <label className="block text-sm text-gray-200 mb-1">
+                  Max Cycle
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  value={maxCycle}
+                  onChange={(e) => setMaxCycle(parseInt(e.target.value))}
+                  required
+                  min={1}
+                />
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="px-3 py-2 rounded-md border border-white/10 text-gray-200 hover:bg-white/5 transition"
+                onClick={() => {
+                  const root = document.getElementById("addLinenModal");
+                  if (root) root.classList.add("hidden");
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="px-3 py-2 rounded-md bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition"
+              >
+                Simpan
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Tabel */}
-      <table className="table table-bordered table-striped table-sm">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                  style={{ cursor: "pointer" }}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {header.column.getIsSorted() === "asc" && " 🔼"}
-                  {header.column.getIsSorted() === "desc" && " 🔽"}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
+      {/* Table container — glass / blur style for dark theme */}
+      <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-auto">
+        <table className="min-w-full text-sm">
+          <thead className="sticky top-0 bg-black/30 backdrop-blur-sm">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className="text-left">
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    className="px-3 py-3 text-xs font-semibold text-gray-300 select-none"
+                    style={{
+                      cursor: header.column.getCanSort()
+                        ? "pointer"
+                        : "default",
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </span>
+                      <span className="text-xs">
+                        {header.column.getIsSorted() === "asc"
+                          ? "▲"
+                          : header.column.getIsSorted() === "desc"
+                            ? "▼"
+                            : ""}
+                      </span>
+                    </div>
+                  </th>
                 ))}
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={columns.length} className="text-center">
-                Tidak ada data
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            ))}
+          </thead>
+
+          <tbody>
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="border-b border-white/6 even:bg-white/2 hover:bg-white/5 transition-colors"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2 align-top text-gray-100"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="px-3 py-6 text-center text-gray-400"
+                >
+                  Tidak ada data
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

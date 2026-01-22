@@ -32,41 +32,28 @@ export default function RiwayatRegister() {
   } | null>(null);
 
   useEffect(() => {
-    const loadBatches = async () => {
-      try{
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/batch-list/registered`);
-        setBatches(res.data);
-      }catch (err) {
-        console.error("Failed to fetch:", err);
-      }
-    };
-    loadBatches();
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/batch-list/registered`)
+      .then((res) => setBatches(res.data ?? []))
+      .catch((err) => console.error("Fetch error:", err));
   }, []);
 
   async function loadDetails(batchId: string, tanggal: string, waktu: string) {
     try {
-      const encBatchID = encodeURIComponent(batchId);
-      const endpoint = `/batch-report/registered/${encBatchID}`;
-      const url = `${import.meta.env.VITE_API_URL}${endpoint}`;
+      const enc = encodeURIComponent(batchId);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/batch-report/registered/${enc}`,
+      );
 
-      const res = await axios.get(url);
-
-      const rows: DetailRow[] = await res.data;
-
-      if (!Array.isArray(rows)) {
-        console.error("Invalid detail data format:", rows);
+      if (!Array.isArray(res.data)) {
         setDetails([]);
         return;
       }
 
       setSelected({ b: batchId, t: tanggal, w: waktu });
-      setDetails(rows);
-    } catch (err: any) {
-      if(err.response){
-        console.error("request failed", err.response.status, err.response.data);
-      }else{
-        console.error("Failed to load batch details:", err.message);
-      }
+      setDetails(res.data);
+    } catch (err) {
+      console.error("Load detail error:", err);
       setDetails([]);
     }
   }
@@ -83,152 +70,190 @@ export default function RiwayatRegister() {
         { text: "Max Cycle", style: "tableHeader" },
         { text: "Total Wash", style: "tableHeader" },
       ],
-      ...details.map((d, idx) => [
-        idx + 1,
+      ...details.map((d, i) => [
+        i + 1,
         d.LINEN_ID,
         d.LINEN_TYPE,
-        (d.Status = "Dicuci"),
-        d.LINEN_MAX_CYCLE.toString(),
-        d.LINEN_TOTAL_WASH.toString(),
+        "Dicuci",
+        d.LINEN_MAX_CYCLE,
+        d.LINEN_TOTAL_WASH,
       ]),
     ];
 
-    const docDefinition = {
-      pageSize: "A4",
-      pageOrientation: "landscape",
-      pageMargins: [40, 60, 40, 60],
-      content: [
-        { text: "RS Cileungsi", style: "mainTitle" },
-        {
-          text: "Laporan Batch Linen",
-          style: "subTitle",
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: `Tanggal : ${selected.t}    Waktu : ${selected.w}\n\n`,
-          style: "info",
-        },
-        {
-          table: {
-            headerRows: 1,
-            widths: [30, "*", 80, 70, 80, 45, 65],
-            body,
+    pdfMake
+      .createPdf({
+        pageSize: "A4",
+        pageOrientation: "landscape",
+        content: [
+          { text: "RS Cileungsi", style: "mainTitle" },
+          { text: "Laporan Batch Linen", style: "subTitle" },
+          {
+            text: `Tanggal : ${selected.t}   Waktu : ${selected.w}\n\n`,
+            style: "info",
           },
-          layout: "lightHorizontalLines",
+          {
+            table: {
+              headerRows: 1,
+              widths: [30, "*", 90, 70, 70, 70],
+              body,
+            },
+          },
+        ],
+        styles: {
+          mainTitle: { fontSize: 18, bold: true, alignment: "center" },
+          subTitle: { fontSize: 14, bold: true, alignment: "center" },
+          info: { fontSize: 11, alignment: "center" },
+          tableHeader: { bold: true, fillColor: "#eeeeee" },
         },
-        {
-          text: `\nTotal Linen : ${details.length}`,
-          alignment: "right",
-          bold: true,
-          margin: [0, 8, 0, 0],
-        },
-      ],
-      styles: {
-        mainTitle: {
-          fontSize: 18,
-          bold: true,
-          alignment: "center",
-          margin: [0, 0, 0, 4],
-        },
-        subTitle: { fontSize: 15, bold: true, alignment: "center" },
-        info: { fontSize: 11, alignment: "center", margin: [0, 0, 0, 10] },
-        tableHeader: { bold: true, fillColor: "#eeeeee", fontSize: 10 },
-      },
-      defaultStyle: { fontSize: 9 },
-    };
-
-    pdfMake.createPdf(docDefinition).open();
+      })
+      .open();
   }
 
   return (
-    <div>
-      <h2 className="mb-3">Riwayat Batch Registered &amp; Cetak PDF</h2>
+    <div className="p-4">
+      <h2 className="text-2xl font-semibold text-white mb-4">
+        Riwayat Batch Registered & Cetak PDF
+      </h2>
 
-      {/* Daftar batch */}
-      <div style={{ maxHeight: 620, overflowY: "auto" }} className="mb-4">
-        <table className="table table-bordered table-hover align-middle mb-0">
-          <thead className="table-primary text-center">
-            <tr>
-              <th>BatchID</th>
-              <th>Tanggal</th>
-              <th>Waktu</th>
-              <th>Jumlah</th>
-              <th style={{ width: 90 }}>Detail</th>
-            </tr>
-          </thead>
-          <tbody>
-            {batches.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center text-muted">
-                  Tidak ada data
-                </td>
-              </tr>
-            )}
-            {batches.map(({ BATCH_IN_ID, Tanggal, Waktu, jumlahLinen }) => (
-              <tr key={`${BATCH_IN_ID}-${Tanggal}-${Waktu}`}>
-                <td>{BATCH_IN_ID}</td>
-                <td>{Tanggal}</td>
-                <td>{Waktu}</td>
-                <td className="text-center">{jumlahLinen}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-outline-primary w-100"
-                    onClick={() => loadDetails(BATCH_IN_ID, Tanggal, Waktu)}
+      {/* BATCH LIST */}
+      <div className="mb-6 max-h-[620px] overflow-y-auto">
+        <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="sticky top-0 bg-black/40 backdrop-blur-md">
+                <tr className="text-center">
+                  {["BatchID", "Tanggal", "Waktu", "Jumlah", "Detail"].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-xs font-semibold text-gray-300"
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+
+              <tbody>
+                {batches.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-6 text-center text-gray-400"
+                    >
+                      Tidak ada data
+                    </td>
+                  </tr>
+                )}
+
+                {batches.map((b) => (
+                  <tr
+                    key={`${b.BATCH_IN_ID}-${b.Tanggal}-${b.Waktu}`}
+                    className="border-b border-white/10 even:bg-white/5 hover:bg-white/10 transition"
                   >
-                    Detail
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    <td className="px-4 py-3 text-gray-100">{b.BATCH_IN_ID}</td>
+                    <td className="px-4 py-3 text-gray-200">{b.Tanggal}</td>
+                    <td className="px-4 py-3 text-gray-200">{b.Waktu}</td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {b.jumlahLinen}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() =>
+                          loadDetails(b.BATCH_IN_ID, b.Tanggal, b.Waktu)
+                        }
+                        className="w-full text-sm px-3 py-1 rounded-md bg-emerald-400 text-black font-medium hover:bg-emerald-300 transition"
+                      >
+                        Detail
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Detail batch */}
+      {/* DETAIL */}
       {selected && (
         <>
-          <div className="d-flex justify-content-between align-items-center">
-            <h4>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-lg font-semibold text-white">
               Detail {selected.t} {selected.w}
             </h4>
-            <button className="btn btn-success" onClick={handlePrint}>
+
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 rounded-md bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition"
+            >
               Print / PDF
             </button>
           </div>
 
-          <table className="table table-sm table-bordered table-striped align-middle mt-2">
-            <thead className="table-light text-center">
-              <tr>
-                <th>No</th>
-                <th>EPC</th>
-                <th>Tipe</th>
-                <th>Status</th>
-                <th>Max Cycle</th>
-                <th>Total Wash</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center text-muted">
-                    Tidak ada detail
-                  </td>
-                </tr>
-              )}
-              {details.map((d, idx) => (
-                <tr key={d.LINEN_ID}>
-                  <td className="text-center">{idx + 1}</td>
-                  <td style={{ maxWidth: 230, wordBreak: "break-word" }}>
-                    {d.LINEN_ID}
-                  </td>
-                  <td>{d.LINEN_TYPE}</td>
-                  <td>{(d.Status = "Dicuci")}</td>
-                  <td className="text-center">{d.LINEN_MAX_CYCLE}</td>
-                  <td className="text-center">{d.LINEN_TOTAL_WASH}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="sticky top-0 bg-black/40 backdrop-blur-md">
+                  <tr className="text-center">
+                    {[
+                      "No",
+                      "EPC",
+                      "Tipe",
+                      "Status",
+                      "Max Cycle",
+                      "Total Wash",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-3 py-2 text-xs uppercase font-semibold text-gray-300"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {details.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-4 py-6 text-center text-gray-400"
+                      >
+                        Tidak ada detail
+                      </td>
+                    </tr>
+                  )}
+
+                  {details.map((d, i) => (
+                    <tr
+                      key={d.LINEN_ID}
+                      className="border-b border-white/10 even:bg-white/5"
+                    >
+                      <td className="px-3 py-2 text-center text-gray-100">
+                        {i + 1}
+                      </td>
+                      <td className="px-3 py-2 max-w-[260px] break-words text-gray-100">
+                        {d.LINEN_ID}
+                      </td>
+                      <td className="px-3 py-2 text-gray-200">
+                        {d.LINEN_TYPE}
+                      </td>
+                      <td className="px-3 py-2 text-gray-200">Dicuci</td>
+                      <td className="px-3 py-2 text-center text-gray-200">
+                        {d.LINEN_MAX_CYCLE}
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-200">
+                        {d.LINEN_TOTAL_WASH}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </>
       )}
     </div>

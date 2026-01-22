@@ -11,7 +11,6 @@ export type StatusCounts = {
   intransit: number;
   dicuci: number;
   bersih: number;
-  keluar: number;
   hilang: number;
   dipakai?: number;
 };
@@ -27,37 +26,37 @@ export default function StatusSummary({ counts, onCardClick }: Props) {
   const cardData: {
     key: keyof StatusCounts;
     label: string;
-    bgClass: string;
+    borderColor: string;
     icon: React.ReactNode;
   }[] = [
     {
       key: "dipakai",
       label: "Dipakai",
-      bgClass: "bg-primary",
+      borderColor: "border-[#24D6AD]",
       icon: <BsArrowDownRightCircleFill size={46} />,
     },
     {
       key: "dicuci",
       label: "Diproses",
-      bgClass: "bg-warning text-dark",
+      borderColor: "border-[#FDB813]",
       icon: <BsDropletHalf size={46} />,
     },
     {
       key: "bersih",
       label: "Bersih",
-      bgClass: "bg-info text-dark",
+      borderColor: "border-[#3EA8FF]",
       icon: <LuLayers size={46} />,
     },
     {
       key: "intransit",
       label: "Intransit",
-      bgClass: "bg-success",
+      borderColor: "border-[#24D6AD]",
       icon: <BsBoxArrowRight size={46} />,
     },
     {
       key: "hilang",
       label: "Hilang",
-      bgClass: "bg-danger",
+      borderColor: "border-[#DC3545]",
       icon: <BsExclamationTriangleFill size={46} />,
     },
   ];
@@ -70,82 +69,42 @@ export default function StatusSummary({ counts, onCardClick }: Props) {
   };
 
   return (
-    <div className="d-flex w-100 gap-3 flex-wrap">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
       {cardData.map((c) => {
         const value = counts?.[c.key] ?? 0;
         return (
           <div
             key={c.key}
-            style={{ flex: 1, minWidth: 170, maxWidth: 360 }}
-            role={onCardClick ? "button" : undefined}
+            role={onCardClick ? "button" : "status"}
             tabIndex={onCardClick ? 0 : undefined}
             aria-label={`${c.label}: ${value}`}
             onClick={() => onCardClick?.(c.key)}
             onKeyDown={(e) => onCardClick && handleKey(e, c.key)}
+            className={`bg-[#1a1818] border-2 ${c.borderColor} rounded-[26px] p-6 min-h-[60px] flex flex-col justify-center shadow-md transition-all duration-150 ease-out ${
+              onCardClick
+                ? "cursor-pointer hover:-translate-y-1.5 hover:shadow-xl"
+                : "cursor-default"
+            }`}
           >
-            <div
-              className={`card text-white ${c.bgClass}`}
-              style={{
-                borderRadius: 26,
-                padding: "20px 16px",
-                height: 120,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                transition: "transform 150ms ease, box-shadow 150ms ease",
-                boxShadow: "0 6px 14px rgba(10,10,10,0.06)",
-                cursor: onCardClick ? "pointer" : "default",
-              }}
-              onMouseOver={(e) => {
-                if (onCardClick) {
-                  (e.currentTarget as HTMLDivElement).style.transform =
-                    "translateY(-6px)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow =
-                    "0 12px 30px rgba(10,10,10,0.12)";
-                }
-              }}
-              onMouseOut={(e) => {
-                (e.currentTarget as HTMLDivElement).style.transform =
-                  "translateY(0)";
-                (e.currentTarget as HTMLDivElement).style.boxShadow =
-                  "0 6px 14px rgba(10,10,10,0.06)";
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <div
-                    style={{ fontSize: "3rem", fontWeight: 800, lineHeight: 1 }}
-                  >
-                    {nf.format(value)}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      marginTop: 6,
-                      opacity: 0.95,
-                    }}
-                  >
-                    {c.label}
-                  </div>
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-5xl font-extrabold leading-none text-white">
+                  {nf.format(value)}
                 </div>
-
-                <div style={{ opacity: 0.95 }}>{c.icon}</div>
+                <div className="text-sm font-semibold mt-1.5 opacity-95 text-gray-300">
+                  {c.label}
+                </div>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginTop: 6,
-                }}
-              >
-                {onCardClick ? (
-                  <small style={{ fontSize: 11, opacity: 0.95 }}>
-                    Klik untuk filter
-                  </small>
-                ) : null}
-              </div>
+              <div className="opacity-80 text-gray-400">{c.icon}</div>
+            </div>
+
+            <div className="flex justify-end mt-1.5">
+              {onCardClick ? (
+                <small className="text-[11px] opacity-90 text-gray-400">
+                  Klik untuk filter
+                </small>
+              ) : null}
             </div>
           </div>
         );

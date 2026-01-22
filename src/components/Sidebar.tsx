@@ -1,10 +1,36 @@
-import { NavLink, useNavigate } from "react-router-dom";
+// Sidebar.tsx
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { getUserRole } from "./auth";
+import {
+  BsSpeedometer2,
+  BsBoxSeam,
+  BsCheck2Circle,
+  BsClipboardData,
+  BsExclamationCircle,
+  BsFileEarmarkText,
+  BsBox,
+  BsBuilding,
+} from "react-icons/bs";
+import { Hospital } from "lucide-react";
 
-export function Sidebar({ isOpen }: { isOpen: boolean }) {
+type SidebarProps = { isOpen: boolean; onClose?: () => void };
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const sidebarWidth = isOpen ? 250 : 60;
   const navigate = useNavigate();
+  const location = useLocation();
   const role = getUserRole();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 500);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -25,133 +51,274 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
     }
   };
 
+  const handleNavLinkClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  const isActive = (path: string, exact = false) => {
+    const current = location.pathname;
+    if (exact) {
+      return current === path;
+    }
+    return current === path || current.startsWith(path + "/");
+  };
+
+  const linkBase =
+    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200 overflow-hidden relative";
+
+  const linkClass = (active: boolean) =>
+    [
+      linkBase,
+      active
+        ? "!bg-[#24D6AD] !text-black"
+        : "!text-[#D1EBDA] hover:!text-white hover:!bg-white/5",
+    ].join(" ");
+
   return (
-    <div
-      className="bg-dark text-white p-2 d-flex flex-column"
-      style={{
-        width: sidebarWidth,
-        height: "100vh",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        overflowY: "auto",
-        zIndex: 1000,
-        transition: "width 0.3s",
-      }}
-    >
-      <div>
-        <h5 className="text-center mb-3">
-          {isOpen ? "🏥 Hospital Linen" : "🏥"}
-        </h5>
-        <hr className="text-white my-2" />
-        <ul className="nav flex-column">
-          {/* user */}
-          <li className="nav-item">
-            <NavLink to="/" className="nav-link text-white">
-              <i className="bi bi-speedometer2 me-2" />
-              {isOpen && "Dashboard"}
-            </NavLink>
-          </li>
-
-          <li>
-            <NavLink
-              to="/batch-report/finished"
-              className="nav-link text-white"
+    <>
+      {/* Mobile backdrop overlay */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-998"
+          onClick={onClose}
+          style={{ display: isOpen ? "block" : "none" }}
+        />
+      )}
+      <aside
+        className="fixed top-0 left-0 h-screen z-999 select-none shadow-2xl"
+        style={{
+          width: isMobile ? (isOpen ? 250 : 0) : sidebarWidth,
+          transition: "width 0.3s",
+          display: isMobile ? (isOpen ? "block" : "none") : "block",
+        }}
+      >
+        <div
+          className="h-full flex flex-col border-r-2 border-r-[#24D6AD]"
+          style={{ backgroundColor: "#242222", color: "#FFFFFF" }}
+        >
+          {/* Header*/}
+          <div className="px-3 py-4">
+            <h5
+              className={`
+              flex items-center justify-center gap-2
+              text-white font-semibold text-sm
+              transition-opacity duration-300
+              ${isOpen ? "opacity-100" : "opacity-0"}
+            `}
             >
-              <i className="bi bi-box-seam me-2" />
-              {isOpen && "Informasi Batch"}
-            </NavLink>
-          </li>
+              <Hospital size={18} className="text-emerald-400 shrink-0" />
+              <span>Hospital Linen</span>
+            </h5>
 
-          {/* admin role */}
-          {role === "admin" && (
-            <>
-              <li className="nav-item">
-                <span className="nav-link text-white fw-bold mt-2">
-                  {isOpen ? "📊 Laporan" : "📊"}
+            <div
+              className={`flex items-center justify-center text-white text-lg mt-1 transition-opacity duration-300 ${
+                isOpen ? "hidden" : "block"
+              }`}
+              aria-hidden={isOpen}
+              title="Hospital Linen"
+            >
+              <Hospital size={18} className="text-emerald-400" />
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="px-2">
+            <nav className="space-y-1">
+              {/* Dashboard - exact match */}
+              <NavLink
+                to="/"
+                end
+                className={linkClass(isActive("/", true))}
+                title="Dashboard"
+                onClick={handleNavLinkClick}
+              >
+                <BsSpeedometer2 className="text-current text-xl flex-shrink-0" />
+                <span
+                  className={`truncate text-sm transition-opacity duration-200 ${
+                    isOpen ? "opacity-100" : "opacity-0"
+                  }`}
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  Dashboard
                 </span>
-                <hr className="text-white my-2" />
+              </NavLink>
 
-                <ul className="nav flex-column ms-2">
-                  <li>
+              {/* Batch info - exact match */}
+              <NavLink
+                to="/batch-report/finished"
+                className={linkClass(isActive("/batch-report/finished", true))}
+                title="Informasi Batch"
+                onClick={handleNavLinkClick}
+              >
+                <BsBoxSeam className="text-current text-lg flex-shrink-0" />
+                <span
+                  className={`truncate text-sm transition-opacity duration-200 ${
+                    isOpen ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  Informasi Batch
+                </span>
+              </NavLink>
+
+              {role === "admin" && (
+                <>
+                  <div className="pt-3">
+                    <div
+                      className={`px-3 py-1 text-xs font-semibold uppercase text-gray-300 ${
+                        isOpen ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      Laporan
+                    </div>
+
+                    {/* Riwayat Selesai */}
                     <NavLink
                       to="/riwayat/selesai"
-                      className="nav-link text-white"
+                      className={linkClass(isActive("/riwayat/selesai", true))}
+                      title="Riwayat Selesai"
+                      onClick={handleNavLinkClick}
                     >
-                      <i className="bi bi-check2-circle me-2" />
-                      {isOpen && "Riwayat Selesai"}
+                      <BsCheck2Circle className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Riwayat Selesai
+                      </span>
                     </NavLink>
-                  </li>
 
-                  <li>
+                    {/* Riwayat Registered */}
                     <NavLink
                       to="/riwayat/register"
-                      className="nav-link text-white"
+                      className={linkClass(isActive("/riwayat/register", true))}
+                      title="Riwayat Registered"
+                      onClick={handleNavLinkClick}
                     >
-                      <i className="bi bi-clipboard-data me-2" />
-                      {isOpen && "Riwayat Registered"}
+                      <BsClipboardData className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Riwayat Registered
+                      </span>
                     </NavLink>
-                  </li>
 
-                  <li>
+                    {/* Riwayat Hilang */}
                     <NavLink
                       to="/riwayat/hilang"
-                      className="nav-link text-white"
+                      className={linkClass(isActive("/riwayat/hilang", true))}
+                      title="Riwayat Hilang"
+                      onClick={handleNavLinkClick}
                     >
-                      <i className="bi-exclamation-circle me-2" />
-                      {isOpen && "Riwayat Hilang"}
+                      <BsExclamationCircle className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Riwayat Hilang
+                      </span>
                     </NavLink>
-                  </li>
-                </ul>
-              </li>
+                  </div>
 
-              <li className="nav-item">
-                <span className="nav-link text-white fw-bold mt-2">
-                  {isOpen ? "🗂️ Data Master" : "🗂️"}
-                </span>
-                <hr className="text-white my-2" />
-                <ul className="nav flex-column ms-2">
-                  <li>
-                    <NavLink to="/master-linen" className="nav-link text-white">
-                      <i className="bi bi-file-earmark-text me-2" />
-                      {isOpen && "Master Linen"}
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/inventory" className="nav-link text-white">
-                      <i className="bi bi-box-seam me-2" />
-                      {isOpen && "Inventory"}
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/ruangan" className="nav-link text-white">
-                      <i className="bi bi-building me-2" />
-                      {isOpen && "Ruangan"}
-                    </NavLink>
-                  </li>
-                </ul>
-              </li>
-            </>
-          )}
-        </ul>
-      </div>
+                  <div className="pt-4">
+                    <div
+                      className={`px-3 py-1 text-xs font-semibold uppercase text-gray-300 ${
+                        isOpen ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      Data Master
+                    </div>
 
-      <div style={{ flexGrow: 1 }} />
-      <div className="mb-2">
-        <button
-          onClick={handleLogout}
-          className="btn btn-outline-light w-100 d-flex align-items-center justify-content-center"
-          title="Logout"
-          style={{
-            borderRadius: isOpen ? 8 : 999,
-            padding: isOpen ? "8px 12px" : "8px",
-          }}
-        >
-          <i className="bi bi-box-arrow-right me-2" />
-          {isOpen ? "Logout" : <span style={{ fontSize: 18 }}>⎋</span>}
-        </button>
-      </div>
-    </div>
+                    {/* Master Linen */}
+                    <NavLink
+                      to="/master-linen"
+                      className={linkClass(isActive("/master-linen", true))}
+                      title="Master Linen"
+                      onClick={handleNavLinkClick}
+                    >
+                      <BsFileEarmarkText className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Master Linen
+                      </span>
+                    </NavLink>
+
+                    {/* Inventory - group; active for /inventory and all subroutes */}
+                    <NavLink
+                      to="/inventory"
+                      className={linkClass(isActive("/inventory", false))}
+                      title="Inventory"
+                      onClick={handleNavLinkClick}
+                    >
+                      <BsBox className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Inventory
+                      </span>
+                    </NavLink>
+
+                    {/* Ruangan */}
+                    <NavLink
+                      to="/ruangan"
+                      className={linkClass(isActive("/ruangan", true))}
+                      title="Ruangan"
+                      onClick={handleNavLinkClick}
+                    >
+                      <BsBuilding className="text-current text-lg flex-shrink-0" />
+                      <span
+                        className={`truncate text-sm transition-opacity duration-200 ${
+                          isOpen ? "opacity-100" : "opacity-0"
+                        }`}
+                      >
+                        Ruangan
+                      </span>
+                    </NavLink>
+                  </div>
+                </>
+              )}
+            </nav>
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Logout */}
+          {/* <div className="p-3">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 transition-all duration-200"
+            style={{
+              borderRadius: isOpen ? 8 : 999,
+              padding: isOpen ? "8px 12px" : "8px",
+              border: "1px solid rgba(255,255,255,0.06)",
+              background: "transparent",
+              color: "#FFFFFF",
+            }}
+            title="Logout"
+          >
+            <i className="bi bi-box-arrow-right text-lg" />
+            <span
+              className={`text-sm transition-opacity duration-200 ${
+                isOpen ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              Logout
+            </span>
+          </button>
+        </div> */}
+        </div>
+      </aside>
+    </>
   );
 }
 
