@@ -87,7 +87,7 @@ function App() {
           path="*"
           element={
             <ProtectedRoute>
-              <div className="flex min-h-screen">
+              <div className="flex w-screen min-h-screen overflow-x-hidden">
                 {/* Sidebar */}
                 <Sidebar
                   isOpen={sidebarOpen}
@@ -96,7 +96,7 @@ function App() {
 
                 {/* Main content */}
                 <div
-                  className="flex flex-col flex-1 transition-all duration-300"
+                  className="flex flex-col flex-1 w-full transition-all duration-300"
                   style={{
                     marginLeft: isMobile ? 0 : sidebarOpen ? 250 : 60,
                   }}

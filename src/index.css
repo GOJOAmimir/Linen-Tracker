@@ -61,8 +61,10 @@ a:hover {
 
 body {
   margin: 0;
-  min-width: 320px;
+  padding: 0;
+  min-width: 100vw;
   min-height: 100vh;
+  overflow-x: hidden;
 
   /* Fallback solid color */
   background-color: #242222;

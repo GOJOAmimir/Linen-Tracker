@@ -48,13 +48,6 @@ const StoragePage = () => {
       {/* top bar: back + title */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/6 hover:bg-white/8 border border-white/6 text-sm transition"
-            aria-label="Kembali"
-          >
-            ← Kembali
-          </button>
           <h1 className="text-2xl md:text-3xl font-semibold">Storage</h1>
         </div>
 
