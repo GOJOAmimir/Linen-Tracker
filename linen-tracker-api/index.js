@@ -3,6 +3,7 @@ import cors from "cors";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 import path from "path";
+import { fileURLToPath } from "url";
 
 import missingRoutes from "./routes/rHilang.js";
 import loginHandler from "./routes/rlogin.js";
@@ -14,6 +15,7 @@ import Dashboard from "./routes/rDashboard.js";
 dotenv.config();
 
 const app = express();
+// const path = require("path");
 
 /*───────────────────────────────────────────────────────────────*/
 /* 1. Konfigurasi koneksi MySQL                                 */
@@ -267,13 +269,15 @@ app.get("/batch-report/registered/:batchInId", async (req, res) => {
   }
 });
 
-// const frontendPath = path.join(__dirname, "client", "dist"); // or "build"
-// app.use(express.static(frontendPath));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendPath = path.join(__dirname, "client", "dist"); // or "build"
+app.use(express.static(frontendPath));
 
-// app.get((req, res) => {
-//   res.sendFile(path.join(frontendPath, "index.html"));
-// });
-
+// SPA fallback (after API routes)
+app.use((req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 /*───────────────────────────────────────────────────────────────*/
 /* 4. Start server                                              */
 /*───────────────────────────────────────────────────────────────*/
