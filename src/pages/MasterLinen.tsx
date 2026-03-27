@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { ColumnDef, SortingState, Row } from "@tanstack/react-table";
 import {
   useReactTable,
@@ -37,6 +38,7 @@ type Linen = {
 };
 
 export default function MasterLinen() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
@@ -54,7 +56,63 @@ export default function MasterLinen() {
       .then((res) => res.json())
       .then((result) => {
         if (result.success && Array.isArray(result.data)) {
-          setData(result.data);
+          setData([
+            {
+              LINEN_CREATED_DATE: "2024-01-01",
+              LINEN_ID: "E245245AD21341255",
+              LINEN_TYPE: "Dummy Linen",
+              LINEN_HEIGHT: "100",
+              LINEN_WIDTH: "80",
+              LINEN_LENGTH: "200",
+              LINEN_SIZE_CATEGORY: "MEDIUM",
+              LINEN_WEIGHT: "1.5",
+              LINEN_MATERIAL: "Cotton",
+              LINEN_SUPPLIER: "Dummy Supplier",
+              LINEN_TYPE_MOVING: "Storage",
+              LINEN_BUDGET_SOURCE: "Internal",
+              LINEN_MAX_CYCLE: 200,
+              LINEN_TOTAL_WASH: 102,
+              LINEN_DESCRIPTION: "Dummy data for testing",
+              LINEN_STATUS: "ACTIVE",
+            },
+            {
+              LINEN_CREATED_DATE: "2024-01-01",
+              LINEN_ID: "E2806A9600004016A4D71C356",
+              LINEN_TYPE: "Dummy Linen",
+              LINEN_HEIGHT: "120",
+              LINEN_WIDTH: "100",
+              LINEN_LENGTH: "200",
+              LINEN_SIZE_CATEGORY: "LARGE",
+              LINEN_WEIGHT: "1.5",
+              LINEN_MATERIAL: "Cotton",
+              LINEN_SUPPLIER: "Dummy Supplier",
+              LINEN_TYPE_MOVING: "Storage",
+              LINEN_BUDGET_SOURCE: "Internal",
+              LINEN_MAX_CYCLE: 160,
+              LINEN_TOTAL_WASH: 159,
+              LINEN_DESCRIPTION: "Dummy data for testing",
+              LINEN_STATUS: "ACTIVE",
+            },
+            {
+              LINEN_CREATED_DATE: "2024-01-01",
+              LINEN_ID: "E2806A9600004016A4D72541",
+              LINEN_TYPE: "Dummy Linen",
+              LINEN_HEIGHT: "50",
+              LINEN_WIDTH: "80",
+              LINEN_LENGTH: "120",
+              LINEN_SIZE_CATEGORY: "LARGE",
+              LINEN_WEIGHT: "2.5",
+              LINEN_MATERIAL: "Cotton",
+              LINEN_SUPPLIER: "Dummy Supplier",
+              LINEN_TYPE_MOVING: "Storage",
+              LINEN_BUDGET_SOURCE: "Internal",
+              LINEN_MAX_CYCLE: 150,
+              LINEN_TOTAL_WASH: 89,
+              LINEN_DESCRIPTION: "Dummy data for testing",
+              LINEN_STATUS: "ACTIVE",
+            },
+            ...result.data,
+          ]);
         } else {
           console.error("Format data tidak sesuai:", result);
           setData([]);
@@ -64,6 +122,16 @@ export default function MasterLinen() {
   };
 
   useEffect(fetchData, []);
+
+  // Handle URL search parameter
+  useEffect(() => {
+    const searchParam = searchParams.get("search");
+    if (searchParam) {
+      setGlobalFilter(searchParam);
+      // Optionally clear the URL parameter after applying it
+      // setSearchParams({});
+    }
+  }, [searchParams]);
 
   // Tambah Linen
   const handleSubmit = async (e: React.FormEvent) => {
@@ -235,14 +303,37 @@ export default function MasterLinen() {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-semibold text-white mb-3">Master Linen</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+        Master Linen
+      </h2>
+
+      {/* Show notification if coming from a notification click */}
+      {searchParams.get("search") && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600 dark:text-blue-400">🔍</span>
+            <p className="text-sm text-blue-900 dark:text-blue-100">
+              Menampilkan hasil untuk:{" "}
+              <strong>{searchParams.get("search")}</strong>
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setGlobalFilter("");
+              setSearchParams({});
+            }}
+            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+          >
+            Hapus filter
+          </button>
+        </div>
+      )}
 
       {/* Action & Search Row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div className="flex flex-wrap gap-2 items-center">
           <button
-            className="px-3 py-2 rounded-md bg-emerald-400 text-black font-medium hover:bg-emerald-300 transition"
-            // legacy attributes left as-is (Bootstrap not used) — you can wire modal open logic later
+            className="px-3 py-2 rounded-md bg-emerald-500 dark:bg-emerald-400 text-white dark:text-black font-medium hover:bg-emerald-600 dark:hover:bg-emerald-300 transition"
             data-bs-toggle="modal"
             data-bs-target="#addLinenModal"
             type="button"
@@ -253,8 +344,8 @@ export default function MasterLinen() {
           <button
             className={`px-3 py-2 rounded-md transition ${
               editMode
-                ? "bg-yellow-400 text-black hover:bg-yellow-300"
-                : "border border-white/10 text-gray-200 hover:bg-white/5"
+                ? "bg-yellow-500 dark:bg-yellow-400 text-white dark:text-black hover:bg-yellow-600 dark:hover:bg-yellow-300"
+                : "border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5"
             }`}
             onClick={() => {
               setEditMode(!editMode);
@@ -267,7 +358,7 @@ export default function MasterLinen() {
 
           {editMode && selectedEpcs.length > 0 && (
             <button
-              className="px-3 py-2 rounded-md bg-rose-500 text-white hover:bg-rose-400 transition"
+              className="px-3 py-2 rounded-md bg-rose-500 text-white hover:bg-rose-600 dark:hover:bg-rose-400 transition"
               onClick={handleDelete}
               type="button"
             >
@@ -281,7 +372,7 @@ export default function MasterLinen() {
           {/* Search */}
           <input
             type="text"
-            className="px-3 py-2 rounded-md bg-white/5 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="px-3 py-2 rounded-md bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 border border-gray-300 dark:border-transparent"
             placeholder="Cari linen..."
             style={{ maxWidth: 300 }}
             value={globalFilter ?? ""}
@@ -311,20 +402,66 @@ export default function MasterLinen() {
                     : "asc";
                 setSorting([{ id, desc: dir === "desc" }]);
               }}
-              className="px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none"
+              className="
+                          px-3 py-2 rounded-md
+                          bg-gray-100 text-gray-900 border border-gray-300
+                          focus:outline-none
+                          dark:bg-neutral-900 dark:text-gray-100 dark:border-white/10
+                        "
               aria-label="Urutkan"
             >
-              <option value="">Urutkan...</option>
-              <option value="LINEN_TOTAL_WASH_desc">Siklus tertinggi</option>
-              <option value="LINEN_TOTAL_WASH_asc">Siklus terendah</option>
-              <option value="LINEN_TYPE_asc">Tipe Linen (A-Z)</option>
-              <option value="LINEN_TYPE_desc">Tipe Linen (Z-A)</option>
-              <option value="LINEN_CREATED_DATE_desc">Terbaru</option>
-              <option value="LINEN_CREATED_DATE_asc">Terlama</option>
+              <option
+                value=""
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Urutkan...
+              </option>
+
+              <option
+                value="LINEN_TOTAL_WASH_desc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Siklus tertinggi
+              </option>
+
+              <option
+                value="LINEN_TOTAL_WASH_asc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Siklus terendah
+              </option>
+
+              <option
+                value="LINEN_TYPE_asc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Tipe Linen (A-Z)
+              </option>
+
+              <option
+                value="LINEN_TYPE_desc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Tipe Linen (Z-A)
+              </option>
+
+              <option
+                value="LINEN_CREATED_DATE_desc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Terbaru
+              </option>
+
+              <option
+                value="LINEN_CREATED_DATE_asc"
+                className="bg-white text-gray-900 dark:bg-neutral-900 dark:text-gray-100"
+              >
+                Terlama
+              </option>
             </select>
 
             <button
-              className="px-3 py-2 rounded-md border border-white/10 text-gray-100 hover:bg-white/5 transition"
+              className="px-3 py-2 rounded-md border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/5 transition"
               onClick={handlePrintMasterLinen}
               title="Cetak / Export ke PDF"
               type="button"
@@ -344,22 +481,20 @@ export default function MasterLinen() {
         aria-labelledby="addLinenModalLabel"
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        <div className="relative max-w-lg w-full bg-[#1f1f1f] border border-white/6 rounded-lg shadow-xl overflow-hidden">
+        <div className="relative max-w-lg w-full bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-white/6 rounded-lg shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="p-4">
             <div className="flex items-center justify-between mb-4">
               <h5
                 id="addLinenModalLabel"
-                className="text-lg font-semibold text-white"
+                className="text-lg font-semibold text-gray-900 dark:text-white"
               >
                 Tambah Linen Baru
               </h5>
               <button
                 id="closeModalBtn"
                 type="button"
-                className="text-gray-300 hover:text-white rounded-md p-1"
-                // keep as no-op — bootstrap not used; external code may call this element by id
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md p-1"
                 onClick={(e) => {
-                  // hide modal if it was opened by adding a 'hidden' toggle (used when integrating)
                   const root = document.getElementById("addLinenModal");
                   if (root) root.classList.add("hidden");
                 }}
@@ -371,10 +506,12 @@ export default function MasterLinen() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-sm text-gray-200 mb-1">EPC</label>
+                <label className="block text-sm text-gray-700 dark:text-gray-200 mb-1">
+                  EPC
+                </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full px-3 py-2 rounded-md bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 border border-gray-300 dark:border-transparent"
                   value={epc}
                   onChange={(e) => setEpc(e.target.value)}
                   required
@@ -382,12 +519,12 @@ export default function MasterLinen() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-200 mb-1">
+                <label className="block text-sm text-gray-700 dark:text-gray-200 mb-1">
                   Tipe Linen
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full px-3 py-2 rounded-md bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 border border-gray-300 dark:border-transparent"
                   value={tipe}
                   onChange={(e) => setTipe(e.target.value)}
                   required
@@ -395,12 +532,12 @@ export default function MasterLinen() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-200 mb-1">
+                <label className="block text-sm text-gray-700 dark:text-gray-200 mb-1">
                   Max Cycle
                 </label>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 rounded-md bg-white/5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full px-3 py-2 rounded-md bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 border border-gray-300 dark:border-transparent"
                   value={maxCycle}
                   onChange={(e) => setMaxCycle(parseInt(e.target.value))}
                   required
@@ -412,7 +549,7 @@ export default function MasterLinen() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
-                className="px-3 py-2 rounded-md border border-white/10 text-gray-200 hover:bg-white/5 transition"
+                className="px-3 py-2 rounded-md border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition"
                 onClick={() => {
                   const root = document.getElementById("addLinenModal");
                   if (root) root.classList.add("hidden");
@@ -422,7 +559,7 @@ export default function MasterLinen() {
               </button>
               <button
                 type="submit"
-                className="px-3 py-2 rounded-md bg-emerald-400 text-black font-semibold hover:bg-emerald-300 transition"
+                className="px-3 py-2 rounded-md bg-emerald-500 dark:bg-emerald-400 text-white dark:text-black font-semibold hover:bg-emerald-600 dark:hover:bg-emerald-300 transition"
               >
                 Simpan
               </button>
@@ -431,17 +568,17 @@ export default function MasterLinen() {
         </div>
       </div>
 
-      {/* Table container — glass / blur style for dark theme */}
-      <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-auto">
+      {/* Table container */}
+      <div className="rounded-xl bg-gray-50 dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-auto shadow-sm">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 bg-black/30 backdrop-blur-sm">
+          <thead className="sticky top-0 bg-gray-100 dark:bg-black/30 backdrop-blur-sm">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="text-left">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="px-3 py-3 text-xs font-semibold text-gray-300 select-none"
+                    className="px-3 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300 select-none"
                     style={{
                       cursor: header.column.getCanSort()
                         ? "pointer"
@@ -471,29 +608,40 @@ export default function MasterLinen() {
 
           <tbody>
             {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-white/6 even:bg-white/2 hover:bg-white/5 transition-colors"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-3 py-2 align-top text-gray-100"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const CycleValue = row.original.LINEN_TOTAL_WASH ?? 0;
+
+                const highlightClass =
+                  CycleValue > 150
+                    ? "bg-rose-100 dark:bg-rose-500/30 hover:bg-rose-200 dark:hover:bg-rose-500/40"
+                    : CycleValue > 80
+                      ? "bg-yellow-100 dark:bg-yellow-400/30 hover:bg-yellow-200 dark:hover:bg-yellow-400/40"
+                      : "even:bg-gray-50 dark:even:bg-white/2 hover:bg-gray-100 dark:hover:bg-white/5";
+
+                return (
+                  <tr
+                    key={row.id}
+                    className={`border-b border-gray-200 dark:border-white/6 transition-colors ${highlightClass}`}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="px-3 py-2 align-top text-gray-900 dark:text-gray-100"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-3 py-6 text-center text-gray-400"
+                  className="px-3 py-6 text-center text-gray-500 dark:text-gray-400"
                 >
                   Tidak ada data
                 </td>

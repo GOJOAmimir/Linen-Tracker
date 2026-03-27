@@ -44,17 +44,19 @@ const StoragePage = () => {
   };
 
   return (
-    <div className="min-h-screen text-white p-6 md:p-10">
+    <div className="min-h-screen p-6 md:p-10 bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       {/* top bar: back + title */}
       <div className="flex items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-semibold">Storage</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">
+            Storage
+          </h1>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={() => navigate("/inventory/storage/history")}
-            className="px-3 py-2 rounded-md border border-white/8 text-sm text-gray-100 hover:bg-white/5 transition"
+            className="px-3 py-2 rounded-md border border-gray-300 dark:border-white/10 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/5 transition"
             title="Log Storage History"
           >
             History
@@ -73,19 +75,31 @@ const StoragePage = () => {
 
       {/* ===== HEADER INFO CARDS ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-5 rounded-xl bg-white/4 backdrop-blur-md border border-emerald-400/10 shadow-sm">
-          <h3 className="text-sm text-gray-200">New Item Today</h3>
-          <p className="text-3xl font-bold text-white mt-2">{todayTotal}</p>
+        <div className="p-5 rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 shadow-sm">
+          <h3 className="text-sm text-gray-600 dark:text-gray-200">
+            New Item Today
+          </h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {todayTotal}
+          </p>
         </div>
 
-        <div className="p-5 rounded-xl bg-white/4 backdrop-blur-md border border-emerald-400/10 shadow-sm">
-          <h3 className="text-sm text-gray-200">Total Linen in Storage</h3>
-          <p className="text-3xl font-bold text-white mt-2">{totalStorage}</p>
+        <div className="p-5 rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 shadow-sm">
+          <h3 className="text-sm text-gray-600 dark:text-gray-200">
+            Total Linen in Storage
+          </h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {totalStorage}
+          </p>
         </div>
 
-        <div className="p-5 rounded-xl bg-white/4 backdrop-blur-md border border-emerald-400/10 shadow-sm">
-          <h3 className="text-sm text-gray-200">Tipe Linen Count</h3>
-          <p className="text-3xl font-bold text-white mt-2">{totalTipe}</p>
+        <div className="p-5 rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 shadow-sm">
+          <h3 className="text-sm text-gray-600 dark:text-gray-200">
+            Tipe Linen Count
+          </h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            {totalTipe}
+          </p>
         </div>
       </div>
 
@@ -97,14 +111,14 @@ const StoragePage = () => {
             placeholder="Search linen type or PIC..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-1/3 px-4 py-2 rounded-lg bg-white/5 border border-white/6 placeholder:text-gray-300 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full md:w-1/3 px-4 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 placeholder:text-gray-400 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
             aria-label="Cari linen"
           />
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 rounded-lg bg-white/5 border border-white/6 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
             aria-label="Urutkan"
           >
             <option value="type">Sort by Type</option>
@@ -116,7 +130,7 @@ const StoragePage = () => {
         <div className="flex items-center gap-3 md:hidden">
           <button
             onClick={() => navigate("/inventory/storage/history")}
-            className="px-3 py-2 rounded-md border border-white/8 text-sm text-gray-100 hover:bg-white/5 transition"
+            className="px-3 py-2 rounded-md border border-gray-300 dark:border-white/10 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/5 transition"
             title="History"
           >
             History
@@ -133,33 +147,23 @@ const StoragePage = () => {
         </div>
       </div>
 
-      {/* ===== DATA TABLE (glass / blur) ===== */}
+      {/* ===== DATA TABLE ===== */}
       <div className="rounded-xl overflow-hidden">
-        <div
-          className="w-full rounded-xl overflow-hidden"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            border: "1px solid rgba(36,214,173,0.06)",
-            boxShadow: "0 10px 30px rgba(36,214,173,0.04)",
-          }}
-        >
+        <div className="w-full rounded-xl overflow-hidden bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 shadow-sm">
           <div className="p-4 overflow-auto">
             <table className="min-w-full table-auto text-sm">
-              <thead>
+              <thead className="bg-gray-100 dark:bg-black/20">
                 <tr className="text-left">
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300 uppercase">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     Tipe Linen
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300 uppercase text-center">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase text-center">
                     Jumlah
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300 uppercase text-center">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase text-center">
                     Storage Type
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300 uppercase text-center">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase text-center">
                     Aksi
                   </th>
                 </tr>
@@ -170,7 +174,7 @@ const StoragePage = () => {
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-4 py-10 text-center text-gray-400"
+                      className="px-4 py-10 text-center text-gray-500 dark:text-gray-400"
                     >
                       Tidak ada data
                     </td>
@@ -191,21 +195,21 @@ const StoragePage = () => {
                     .map((item, i) => (
                       <tr
                         key={i}
-                        className="border-t border-white/6 hover:bg-white/6 transition"
+                        className="border-t border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 transition"
                       >
                         <td className="px-4 py-3 align-middle">
-                          <div className="text-sm text-white font-medium">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {item.LINEN_TYPE}
                           </div>
                         </td>
 
                         <td className="px-4 py-3 text-center align-middle">
-                          <div className="text-lg font-semibold text-white">
+                          <div className="text-lg font-semibold text-gray-900 dark:text-white">
                             {item.jumlah}
                           </div>
                         </td>
 
-                        <td className="px-4 py-3 text-center align-middle text-gray-300">
+                        <td className="px-4 py-3 text-center align-middle text-gray-600 dark:text-gray-300">
                           {item.storage_type}
                         </td>
 
@@ -213,10 +217,12 @@ const StoragePage = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/inventory/storage/${encodeURIComponent(item.LINEN_TYPE)}`,
+                                `/inventory/storage/${encodeURIComponent(
+                                  item.LINEN_TYPE,
+                                )}`,
                               )
                             }
-                            className="text-emerald-400 hover:text-emerald-300 font-medium transition"
+                            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-medium transition"
                             aria-label={`Detail ${item.LINEN_TYPE}`}
                           >
                             Detail
@@ -230,18 +236,24 @@ const StoragePage = () => {
           </div>
 
           {/* summary footer */}
-          <div className="px-4 py-3 border-t border-white/6 flex flex-col md:flex-row items-center justify-between gap-3">
-            <div className="text-sm text-gray-300">
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               Total Tipe:{" "}
-              <span className="font-medium text-white">{totalTipe}</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {totalTipe}
+              </span>
             </div>
-            <div className="text-sm text-gray-300">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               Total Storage:{" "}
-              <span className="font-medium text-white">{totalStorage}</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {totalStorage}
+              </span>
             </div>
-            <div className="text-sm text-gray-300">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               New Today:{" "}
-              <span className="font-medium text-white">{todayTotal}</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {todayTotal}
+              </span>
             </div>
           </div>
         </div>

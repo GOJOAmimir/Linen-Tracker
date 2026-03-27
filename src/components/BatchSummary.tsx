@@ -37,7 +37,7 @@ export default function BatchSummary() {
     <div className="flex flex-col h-full rounded-xl">
       {/* Card header */}
       <div className="px-4 py-3 text-center">
-        <h5 className="mb-0 text-lg font-semibold text-white border rounded-lg p-2">
+        <h5 className="mb-0 text-lg font-semibold text-[#3D3A3A] dark:text-white border border-[#3D3A3A] dark:border-white/80 rounded-lg p-2">
           Batch Terbaru
         </h5>
       </div>
@@ -45,29 +45,23 @@ export default function BatchSummary() {
       {/* Card body */}
       <div className="px-4 pb-4">
         <div
-          className="w-full rounded-lg overflow-hidden border"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02))",
-            backdropFilter: "blur(8px)",
-            borderColor: "rgba(255,255,255,0.06)",
-          }}
+          className="w-full rounded-lg overflow-hidden border border-[#3D3A3A] dark:border-white/20"
           aria-hidden={false}
         >
           <div className="overflow-auto">
             <table className="min-w-full table-fixed text-sm">
               <thead>
                 <tr className="text-center">
-                  <th className="px-3 py-2 text-xs font-semibold uppercase text-gray-300">
+                  <th className="px-3 py-2 text-xs font-semibold uppercase text-[#3D3A3A] dark:text-gray-300">
                     ID Batch
                   </th>
-                  <th className="px-3 py-2 text-xs font-semibold uppercase text-gray-300">
+                  <th className="px-3 py-2 text-xs font-semibold uppercase text-[#3D3A3A] dark:text-gray-300">
                     Waktu
                   </th>
-                  <th className="px-3 py-2 text-xs font-semibold uppercase text-gray-300 text-center">
+                  <th className="px-3 py-2 text-xs font-semibold uppercase text-[#3D3A3A] dark:text-gray-300 text-center">
                     Total Linen
                   </th>
-                  <th className="px-3 py-2 text-xs font-semibold uppercase text-gray-300 text-center">
+                  <th className="px-3 py-2 text-xs font-semibold uppercase text-[#3D3A3A] dark:text-gray-300 text-center">
                     Status
                   </th>
                 </tr>
@@ -80,15 +74,15 @@ export default function BatchSummary() {
                     style={{ height: `${rowHeight}px` }}
                     className="even:bg-white/2"
                   >
-                    <td className="px-3 py-2 align-middle text-gray-100 whitespace-nowrap">
+                    <td className="px-3 py-2 align-middle text-[#3D3A3A] dark:text-gray-100 whitespace-nowrap">
                       <span className="font-medium text-sm">#{batch.id}</span>
                     </td>
 
-                    <td className="px-3 py-2 align-middle text-gray-200 whitespace-nowrap">
+                    <td className="px-3 py-2 align-middle text-[#3D3A3A] dark:text-gray-200 whitespace-nowrap">
                       {batch.waktu}
                     </td>
 
-                    <td className="px-3 py-2 align-middle text-center text-gray-100">
+                    <td className="px-3 py-2 align-middle text-center text-[#3D3A3A] dark:text-gray-100">
                       {batch.totalLinen}
                     </td>
 
@@ -119,7 +113,7 @@ export default function BatchSummary() {
                   <tr style={{ height: `${rowHeight}px` }}>
                     <td
                       colSpan={4}
-                      className="px-3 py-2 text-center text-gray-400"
+                      className="px-3 py-2 text-center text-[#3D3A3A] dark:text-gray-100"
                     >
                       Tidak ada data batch
                     </td>

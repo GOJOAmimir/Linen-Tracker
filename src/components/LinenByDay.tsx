@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// LinenByDay.tsx
+import { useEffect, useMemo, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -9,6 +10,8 @@ import {
   Legend,
   Title,
 } from "chart.js";
+import type { ChartOptions } from "chart.js";
+import { useTheme } from "../context/ThemeContext";
 
 ChartJS.register(
   BarElement,
@@ -26,100 +29,118 @@ type DataEntry = {
 
 export default function LinenByDay() {
   const [data, setData] = useState<DataEntry[]>([]);
+  const themeCtx = useTheme();
+  const isDark = themeCtx.theme === "dark";
 
+  // --- fetch data
   useEffect(() => {
+    let mounted = true;
     fetch(`${import.meta.env.VITE_API_URL}/linen/daily-in`)
       .then((res) => res.json())
       .then((resJson) => {
-        if (resJson.success && Array.isArray(resJson.data)) {
+        if (!mounted) return;
+        if (resJson?.success && Array.isArray(resJson.data)) {
           setData(resJson.data);
         } else {
+          setData([]);
           console.warn("Unexpected daily-in response", resJson);
         }
       })
-      .catch((err) => console.error("Fetch daily-in error:", err));
+      .catch((err) => {
+        if (mounted) {
+          console.error("Fetch daily-in error:", err);
+          setData([]);
+        }
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const labels = data.map((d) => d.tanggal);
-  const values = data.map((d) => d.jumlah);
+  const labels = useMemo(() => data.map((d) => d.tanggal), [data]);
+  const values = useMemo(() => data.map((d) => d.jumlah), [data]);
 
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        label: "Total Linen / Hari",
-        data: values,
-        backgroundColor: "#24D6AD",
-        borderRadius: 6,
-        barPercentage: 0.6,
-      },
-    ],
-  };
+  const chartData = useMemo(
+    () => ({
+      labels,
+      datasets: [
+        {
+          label: "Total Linen / Hari",
+          data: values,
+          backgroundColor: "#24D6AD",
+          borderRadius: 6,
+          barPercentage: 0.6,
+        },
+      ],
+    }),
+    [labels, values],
+  );
 
-  const chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      title: {
-        display: false,
+  const chartOptions = useMemo<ChartOptions<"bar">>(() => {
+    const axisColor = isDark ? "#CFECE1" : "#374151";
+    const tooltipBg = isDark ? "#0f172a" : "#ffffff";
+    const tooltipTitleColor = isDark ? "#e5e7eb" : "#111827";
+    const tooltipBodyColor = isDark ? "#e5e7eb" : "#374151";
+    const tooltipBorder = isDark
+      ? "rgba(255,255,255,0.08)"
+      : "rgba(0,0,0,0.06)";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 0,
       },
-      tooltip: {
-        padding: 8,
-        titleColor: "#0b2b26",
-        bodyColor: "#04110f",
-        backgroundColor: "#ffffff",
-        borderColor: "rgba(0,0,0,0.06)",
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          color: "#CFECE1",
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 10,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          padding: 10,
+          backgroundColor: tooltipBg,
+          titleColor: tooltipTitleColor,
+          bodyColor: tooltipBodyColor,
+          borderColor: tooltipBorder,
+          borderWidth: 1,
         },
       },
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: "rgba(255,255,255,0.04)",
-          drawBorder: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: axisColor,
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 10,
+          },
         },
-        ticks: {
-          color: "#CFECE1",
-          precision: 0,
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: gridColor,
+            drawBorder: false,
+          },
+          ticks: {
+            color: axisColor,
+            precision: 0,
+          },
         },
       },
-    },
-  };
+    };
+  }, [isDark]);
 
   return (
     <div className="flex flex-col h-full rounded-xl">
       {/* Header */}
       <div className="px-4 py-3 text-center">
-        <h5 className="mb-0 text-lg font-semibold text-white border rounded-lg p-2">
+        <h5 className="text-lg font-semibold text-[#3D3A3A] dark:text-white border border-[#3D3A3A] dark:border-white/80 rounded-lg p-2">
           Grafik Linen Per Hari
         </h5>
       </div>
-      {/* Chart container */}
-      <div className=" flex-1 px-4 pb-4">
-        <div
-          className="w-full rounded-lg h-full overflow-hidden border"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(36,34,34,0.45), rgba(18,20,19,0.35))",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            border: "1px solid rgba(36,214,173,0.06)",
-          }}
-        >
-          <div className="h-full p-2">
+
+      {/* Chart */}
+      <div className="flex-1 px-4 pb-4">
+        <div className="h-full rounded-xl border border-[#3D3A3A] bg-card backdrop-blur-md overflow-hidden">
+          <div className="h-full p-3">
             <Bar data={chartData} options={chartOptions} />
           </div>
         </div>

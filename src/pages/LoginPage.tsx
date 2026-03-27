@@ -33,7 +33,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 h-screen w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 h-screen w-full bg-gray-100 dark:bg-gray-900">
       <div className="hidden sm:block">
         <img
           className="w-full h-full object-cover"
@@ -46,10 +46,12 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="bg-gray-800 flex flex-col justify-center">
+      <div className="flex flex-col justify-center bg-gray-100 dark:bg-gray-800">
         <form
           onSubmit={handleLogin}
-          className="max-w-[400px] w-full mx-auto rounded-lg bg-gray-900 p-8 px-8 border border-emerald-300"
+          className="max-w-[400px] w-full mx-auto rounded-lg p-8 px-8
+                   bg-white dark:bg-gray-900
+                   border border-emerald-300 dark:border-emerald-400/60"
         >
           <div className="text-center mb-6">
             <img
@@ -60,22 +62,27 @@ export default function LoginPage() {
                 (e.target as HTMLImageElement).style.display = "none";
               }}
             />
-            <h2 className="text-3xl text-white font-bold">RSUD CILEUNGSI</h2>
-            <p className="text-gray-400 text-sm mt-1">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+              RSUD CILEUNGSI
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
               Sistem RFID Linen Tracking
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/50 text-red-400 rounded-lg px-4 py-2 mb-4 text-sm">
+            <div className="bg-red-500/10 border border-red-500/50 text-red-500 dark:text-red-400 rounded-lg px-4 py-2 mb-4 text-sm">
               {error}
             </div>
           )}
 
-          <div className="flex flex-col text-gray-400 py-2">
+          <div className="flex flex-col text-gray-600 dark:text-gray-400 py-2">
             <label>Username</label>
             <input
-              className="rounded-lg bg-gray-700 mt-2 p-2 focus:border-[#24D6AD] focus:bg-gray-800 focus:outline-none text-white"
+              className="rounded-lg mt-2 p-2
+                       bg-gray-200 dark:bg-gray-700
+                       text-gray-900 dark:text-white
+                       focus:border-emerald-400 focus:outline-none"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -85,10 +92,13 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="flex flex-col text-gray-400 py-2">
+          <div className="flex flex-col text-gray-600 dark:text-gray-400 py-2">
             <label>Password</label>
             <input
-              className="p-2 rounded-lg bg-gray-700 mt-2 focus:border-[#24D6AD] focus:bg-gray-800 focus:outline-none text-white"
+              className="rounded-lg mt-2 p-2
+                       bg-gray-200 dark:bg-gray-700
+                       text-gray-900 dark:text-white
+                       focus:border-emerald-400 focus:outline-none"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -99,18 +109,22 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full my-5 py-2 bg-[#24D6AD] shadow-lg shadow-[#24D6AD]/50 hover:shadow-[#24D6AD]/40 text-black font-semibold rounded-lg transition-all"
+            className="w-full my-5 py-2 rounded-lg font-semibold transition-all
+                     bg-emerald-400 text-black
+                     hover:bg-emerald-300
+                     shadow-lg shadow-emerald-400/40"
           >
             LOGIN
           </button>
 
-          <div className="text-center">
-            <p>
-              don't have an accont? <a href="">Contact IT Support</a>
-            </p>
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            don't have an account?{" "}
+            <a href="#" className="text-emerald-500">
+              Contact IT Support
+            </a>
           </div>
 
-          <div className="text-center text-gray-500 text-xs">
+          <div className="text-center text-gray-500 text-xs mt-3">
             © RSUD {new Date().getFullYear()}
           </div>
         </form>

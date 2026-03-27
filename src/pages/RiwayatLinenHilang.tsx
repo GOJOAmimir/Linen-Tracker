@@ -44,47 +44,37 @@ const RiwayatLinenHilang: React.FC = () => {
     );
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-6 text-white">
+    <div className="p-6 bg-gray-50 text-gray-900 dark:bg-neutral-950 dark:text-gray-100">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
         Riwayat Linen Hilang
       </h2>
 
-      {/* {data.length === 0 ? (
-        <div className="text-gray-400">Tidak ada linen yang hilang</div>
-      ) : ( */}
       <div className="w-full overflow-x-auto">
         <div
-          className="min-w-[900px] rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-hidden"
+          className="min-w-[900px] rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-hidden"
           role="region"
           aria-label="Tabel Riwayat Linen Hilang"
         >
           <table className="min-w-full text-sm">
-            <thead className="sticky top-0 bg-black/30 backdrop-blur-sm">
+            <thead className="sticky top-0 bg-gray-100 dark:bg-black/30 backdrop-blur-sm">
               <tr className="text-left">
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Linen ID
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Tipe
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Ukuran
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Max Cuci
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Total Cuci
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Deskripsi
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Terakhir Terbaca
-                </th>
-                <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-300">
-                  Jam Hilang
-                </th>
+                {[
+                  "Linen ID",
+                  "Tipe",
+                  "Ukuran",
+                  "Max Cuci",
+                  "Total Cuci",
+                  "Deskripsi",
+                  "Terakhir Terbaca",
+                  "Jam Hilang",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-xs font-semibold uppercase text-gray-700 dark:text-gray-300"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
 
@@ -92,39 +82,39 @@ const RiwayatLinenHilang: React.FC = () => {
               {data.map((item) => (
                 <tr
                   key={item.LINEN_ID}
-                  className="border-b border-white/6 even:bg-white/2 hover:bg-white/5 transition-colors"
+                  className="border-b border-gray-200 dark:border-white/10 even:bg-gray-50 dark:even:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                 >
-                  <td className="px-4 py-3 align-top font-mono text-emerald-200">
+                  <td className="px-4 py-3 align-top font-mono text-emerald-700 dark:text-emerald-300">
                     {item.LINEN_ID}
                   </td>
 
-                  <td className="px-4 py-3 align-top text-gray-200">
+                  <td className="px-4 py-3 align-top text-gray-700 dark:text-gray-300">
                     {item.LINEN_TYPE}
                   </td>
 
-                  <td className="px-4 py-3 align-top text-gray-200">
+                  <td className="px-4 py-3 align-top text-gray-700 dark:text-gray-300">
                     {item.LINEN_HEIGHT} x {item.LINEN_WIDTH} cm
                   </td>
 
-                  <td className="px-4 py-3 align-top text-gray-200">
+                  <td className="px-4 py-3 align-top text-gray-700 dark:text-gray-300">
                     {item.LINEN_MAX_CYCLE}
                   </td>
 
-                  <td className="px-4 py-3 align-top text-gray-200">
+                  <td className="px-4 py-3 align-top text-gray-700 dark:text-gray-300">
                     {item.LINEN_TOTAL_WASH}
                   </td>
 
-                  <td className="px-4 py-3 align-top text-gray-200 max-w-[320px] break-words">
+                  <td className="px-4 py-3 align-top text-gray-700 dark:text-gray-300 max-w-[320px] break-words">
                     {item.LINEN_DESCRIPTION}
                   </td>
 
-                  <td className="px-4 py-3 align-top text-sm text-gray-400">
+                  <td className="px-4 py-3 align-top text-sm text-gray-500 dark:text-gray-400">
                     {item.storage_time_out
                       ? new Date(item.storage_time_out).toLocaleString()
                       : "-"}
                   </td>
 
-                  <td className="px-4 py-3 align-top font-semibold text-rose-400">
+                  <td className="px-4 py-3 align-top font-semibold text-rose-600 dark:text-rose-400">
                     {item.hourdiff} jam
                   </td>
                 </tr>
@@ -133,7 +123,6 @@ const RiwayatLinenHilang: React.FC = () => {
           </table>
         </div>
       </div>
-      {/* )} */}
     </div>
   );
 };

@@ -110,23 +110,22 @@ export default function RiwayatRegister() {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-semibold text-white mb-4">
-        Riwayat Batch Registered & Cetak PDF
+    <div className="p-4 bg-gray-50 text-gray-900 dark:bg-neutral-950 dark:text-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+        Riwayat Batch Registered &amp; Cetak PDF
       </h2>
 
-      {/* BATCH LIST */}
       <div className="mb-6 max-h-[620px] overflow-y-auto">
-        <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-hidden">
+        <div className="rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-black/40 backdrop-blur-md">
+              <thead className="sticky top-0 bg-gray-100 dark:bg-black/40 backdrop-blur-md">
                 <tr className="text-center">
                   {["BatchID", "Tanggal", "Waktu", "Jumlah", "Detail"].map(
                     (h) => (
                       <th
                         key={h}
-                        className="px-4 py-3 text-xs font-semibold text-gray-300"
+                        className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300"
                       >
                         {h}
                       </th>
@@ -140,7 +139,7 @@ export default function RiwayatRegister() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-6 text-center text-gray-400"
+                      className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
                     >
                       Tidak ada data
                     </td>
@@ -150,14 +149,16 @@ export default function RiwayatRegister() {
                 {batches.map((b) => (
                   <tr
                     key={`${b.BATCH_IN_ID}-${b.Tanggal}-${b.Waktu}`}
-                    className="border-b border-white/10 even:bg-white/5 hover:bg-white/10 transition"
+                    className="border-b border-gray-200 dark:border-white/10 even:bg-gray-50 dark:even:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition"
                   >
-                    <td className="px-4 py-3 text-gray-100">{b.BATCH_IN_ID}</td>
-                    <td className="px-4 py-3 text-gray-200">{b.Tanggal}</td>
-                    <td className="px-4 py-3 text-gray-200">{b.Waktu}</td>
-                    <td className="px-4 py-3 text-center text-gray-100">
-                      {b.jumlahLinen}
+                    <td className="px-4 py-3">{b.BATCH_IN_ID}</td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                      {b.Tanggal}
                     </td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                      {b.Waktu}
+                    </td>
+                    <td className="px-4 py-3 text-center">{b.jumlahLinen}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() =>
@@ -176,11 +177,10 @@ export default function RiwayatRegister() {
         </div>
       </div>
 
-      {/* DETAIL */}
       {selected && (
         <>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-lg font-semibold text-white">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
               Detail {selected.t} {selected.w}
             </h4>
 
@@ -192,10 +192,10 @@ export default function RiwayatRegister() {
             </button>
           </div>
 
-          <div className="rounded-xl bg-white/5 backdrop-blur-md border border-emerald-400/10 overflow-hidden">
+          <div className="rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="sticky top-0 bg-black/40 backdrop-blur-md">
+                <thead className="sticky top-0 bg-gray-100 dark:bg-black/40 backdrop-blur-md">
                   <tr className="text-center">
                     {[
                       "No",
@@ -207,7 +207,7 @@ export default function RiwayatRegister() {
                     ].map((h) => (
                       <th
                         key={h}
-                        className="px-3 py-2 text-xs uppercase font-semibold text-gray-300"
+                        className="px-3 py-2 text-xs uppercase font-semibold text-gray-700 dark:text-gray-300"
                       >
                         {h}
                       </th>
@@ -220,7 +220,7 @@ export default function RiwayatRegister() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-4 py-6 text-center text-gray-400"
+                        className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
                       >
                         Tidak ada detail
                       </td>
@@ -230,22 +230,22 @@ export default function RiwayatRegister() {
                   {details.map((d, i) => (
                     <tr
                       key={d.LINEN_ID}
-                      className="border-b border-white/10 even:bg-white/5"
+                      className="border-b border-gray-200 dark:border-white/10 even:bg-gray-50 dark:even:bg-white/5"
                     >
-                      <td className="px-3 py-2 text-center text-gray-100">
-                        {i + 1}
-                      </td>
-                      <td className="px-3 py-2 max-w-[260px] break-words text-gray-100">
+                      <td className="px-3 py-2 text-center">{i + 1}</td>
+                      <td className="px-3 py-2 max-w-[260px] break-words">
                         {d.LINEN_ID}
                       </td>
-                      <td className="px-3 py-2 text-gray-200">
+                      <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                         {d.LINEN_TYPE}
                       </td>
-                      <td className="px-3 py-2 text-gray-200">Dicuci</td>
-                      <td className="px-3 py-2 text-center text-gray-200">
+                      <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                        Dicuci
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                         {d.LINEN_MAX_CYCLE}
                       </td>
-                      <td className="px-3 py-2 text-center text-gray-200">
+                      <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                         {d.LINEN_TOTAL_WASH}
                       </td>
                     </tr>

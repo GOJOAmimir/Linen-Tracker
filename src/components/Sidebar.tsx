@@ -72,8 +72,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     [
       linkBase,
       active
-        ? "!bg-[#24D6AD] !text-black"
-        : "!text-[#D1EBDA] hover:!text-white hover:!bg-white/5",
+        ? "bg-emerald-400 text-black"
+        : `
+        text-gray-700 hover:bg-gray-100 hover:text-black
+        dark:text-[#D1EBDA] dark:hover:bg-white/5 dark:hover:text-white
+      `,
     ].join(" ");
 
   return (
@@ -95,18 +98,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         }}
       >
         <div
-          className="h-full flex flex-col border-r-2 border-r-[#24D6AD]"
-          style={{ backgroundColor: "#242222", color: "#FFFFFF" }}
+          className="
+                      h-full flex flex-col
+                      bg-white text-gray-800
+                      dark:bg-[#242222] dark:text-white
+                      border-r border-[#3D3A3A] dark:border-gray-700
+                    "
         >
           {/* Header*/}
           <div className="px-3 py-4">
             <h5
               className={`
-              flex items-center justify-center gap-2
-              text-white font-semibold text-sm
-              transition-opacity duration-300
-              ${isOpen ? "opacity-100" : "opacity-0"}
-            `}
+                          flex items-center justify-center gap-2
+                          font-semibold text-sm
+                          text-gray-800 dark:text-white
+                          transition-opacity duration-300
+                          ${isOpen ? "opacity-100" : "opacity-0"}
+                        `}
             >
               <Hospital size={18} className="text-emerald-400 shrink-0" />
               <span>Hospital Linen</span>
@@ -119,7 +127,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               aria-hidden={isOpen}
               title="Hospital Linen"
             >
-              <Hospital size={18} className="text-emerald-400" />
+              <Hospital size={18} className="text-emerald-400 shrink-0" />
             </div>
           </div>
 
@@ -147,8 +155,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
               {/* Batch info - exact match */}
               <NavLink
-                to="/batch-report/finished"
-                className={linkClass(isActive("/batch-report/finished", true))}
+                to="/information"
+                className={linkClass(isActive("/information", true))}
                 title="Informasi Batch"
                 onClick={handleNavLinkClick}
               >

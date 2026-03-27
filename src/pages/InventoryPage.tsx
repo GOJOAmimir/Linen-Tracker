@@ -32,7 +32,7 @@ export default function InventoryOverview() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-6 py-16 text-white">
+    <div className="min-h-screen flex flex-col items-center px-6 py-16 text-[#3D3A3A] dark:text-white">
       {/* Title */}
       <h1 className="text-3xl md:text-4xl font-bold mb-3">
         Inventory Overview
@@ -57,7 +57,9 @@ export default function InventoryOverview() {
             STORAGE
           </h2>
 
-          <p className="text-5xl font-bold mb-2 text-white">{data.storage}</p>
+          <p className="text-5xl font-bold mb-2 text-[#3D3A3A] dark:text-white">
+            {data.storage}
+          </p>
 
           <p className="text-gray-400 mb-6">Linen tersedia</p>
 
@@ -84,7 +86,7 @@ export default function InventoryOverview() {
             ON THE WAY
           </h2>
 
-          <p className="text-5xl font-bold mb-2 text-white">
+          <p className="text-5xl font-bold mb-2 text-[#3D3A3A] dark:text-white">
             {data.on_the_way}
           </p>
 

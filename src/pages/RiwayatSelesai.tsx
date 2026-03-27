@@ -146,35 +146,30 @@ export default function RiwayatSelesai() {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-white text-2xl font-semibold mb-4">
+    <div className="p-4 bg-gray-50 text-gray-900 dark:bg-neutral-950 dark:text-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
         Riwayat Batch Selesai &amp; Cetak PDF
       </h2>
 
-      {/* Batches list */}
       <div className="mb-6 max-h-[620px] overflow-y-auto rounded-lg">
-        <div
-          className="w-full rounded-lg bg-white/4 backdrop-blur-md border border-emerald-400/10 overflow-hidden"
-          role="region"
-          aria-label="Daftar Batch"
-        >
+        <div className="w-full rounded-lg bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-hidden">
           <div className="w-full overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-black/25 sticky top-0 backdrop-blur-md">
+              <thead className="bg-gray-100 dark:bg-black/30 sticky top-0 backdrop-blur-md">
                 <tr className="text-center">
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     BatchID
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Tanggal
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Waktu
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Jumlah
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-300">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Detail
                   </th>
                 </tr>
@@ -185,7 +180,7 @@ export default function RiwayatSelesai() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-6 text-center text-gray-400"
+                      className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
                     >
                       Tidak ada data
                     </td>
@@ -196,23 +191,22 @@ export default function RiwayatSelesai() {
                   ({ BATCH_OUT_ID, Tanggal, Waktu, jumlahLinen }) => (
                     <tr
                       key={`${BATCH_OUT_ID}-${Tanggal}-${Waktu}`}
-                      className="border-b border-white/6 even:bg-white/2"
+                      className="border-b border-gray-200 dark:border-white/10 even:bg-gray-50 dark:even:bg-white/5"
                     >
-                      <td className="px-4 py-3 text-gray-100">
-                        {BATCH_OUT_ID}
+                      <td className="px-4 py-3">{BATCH_OUT_ID}</td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                        {Tanggal}
                       </td>
-                      <td className="px-4 py-3 text-gray-200">{Tanggal}</td>
-                      <td className="px-4 py-3 text-gray-200">{Waktu}</td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {jumlahLinen}
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                        {Waktu}
                       </td>
+                      <td className="px-4 py-3 text-center">{jumlahLinen}</td>
                       <td className="px-4 py-3">
                         <button
                           onClick={() =>
                             loadDetails(BATCH_OUT_ID, Tanggal, Waktu)
                           }
                           className="w-full text-sm px-3 py-1 rounded-md bg-emerald-400 text-black font-medium hover:bg-emerald-300 transition"
-                          aria-label={`Lihat detail ${BATCH_OUT_ID}`}
                         >
                           Detail
                         </button>
@@ -226,11 +220,10 @@ export default function RiwayatSelesai() {
         </div>
       </div>
 
-      {/* Detail section */}
       {selected && (
         <>
           <div className="flex items-center justify-between mb-3 gap-3">
-            <h4 className="text-lg text-white font-semibold">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
               Detail {selected.t} {selected.w}
             </h4>
 
@@ -240,7 +233,7 @@ export default function RiwayatSelesai() {
                   setSelected(null);
                   setDetails([]);
                 }}
-                className="px-3 py-1 rounded-md border border-white/10 text-gray-200 hover:bg-white/5 transition"
+                className="px-3 py-1 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5 transition"
               >
                 Tutup
               </button>
@@ -254,30 +247,27 @@ export default function RiwayatSelesai() {
             </div>
           </div>
 
-          <div
-            className="w-full rounded-xl bg-white/4 backdrop-blur-md border border-emerald-400/10 overflow-hidden"
-            aria-live="polite"
-          >
+          <div className="w-full rounded-xl bg-white dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-emerald-400/10 overflow-hidden">
             <div className="w-full overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-black/25 sticky top-0 backdrop-blur-md">
+                <thead className="bg-gray-100 dark:bg-black/30 sticky top-0 backdrop-blur-md">
                   <tr className="text-center">
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                       No
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300 text-left">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 text-left">
                       EPC
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                       Tipe
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                       Status
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                       Max Cycle
                     </th>
-                    <th className="px-3 py-2 text-xs font-semibold text-gray-300">
+                    <th className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
                       Total Wash
                     </th>
                   </tr>
@@ -288,7 +278,7 @@ export default function RiwayatSelesai() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-3 py-6 text-center text-gray-400"
+                        className="px-3 py-6 text-center text-gray-500 dark:text-gray-400"
                       >
                         Tidak ada detail
                       </td>
@@ -298,24 +288,22 @@ export default function RiwayatSelesai() {
                   {details.map((d, idx) => (
                     <tr
                       key={d.LINEN_ID || `${idx}`}
-                      className="border-b border-white/6 even:bg-white/2"
+                      className="border-b border-gray-200 dark:border-white/10 even:bg-gray-50 dark:even:bg-white/5"
                     >
-                      <td className="px-3 py-2 text-center text-gray-100">
-                        {idx + 1}
-                      </td>
-                      <td className="px-3 py-2 max-w-[260px] break-words text-gray-100">
+                      <td className="px-3 py-2 text-center">{idx + 1}</td>
+                      <td className="px-3 py-2 max-w-[260px] break-words">
                         {d.LINEN_ID}
                       </td>
-                      <td className="px-3 py-2 text-gray-200">
+                      <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                         {d.LINEN_TYPE}
                       </td>
-                      <td className="px-3 py-2 text-gray-200">
-                        {(d.Status = "Bersih")}
+                      <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                        Bersih
                       </td>
-                      <td className="px-3 py-2 text-center text-gray-200">
+                      <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                         {d.LINEN_MAX_CYCLE}
                       </td>
-                      <td className="px-3 py-2 text-center text-gray-200">
+                      <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                         {d.LINEN_TOTAL_WASH}
                       </td>
                     </tr>
