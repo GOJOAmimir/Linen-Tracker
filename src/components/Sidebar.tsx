@@ -12,7 +12,7 @@ import {
   BsBox,
   BsBuilding,
 } from "react-icons/bs";
-import { Hospital } from "lucide-react";
+import { Archive } from "lucide-react";
 
 type SidebarProps = { isOpen: boolean; onClose?: () => void };
 
@@ -116,8 +116,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           ${isOpen ? "opacity-100" : "opacity-0"}
                         `}
             >
-              <Hospital size={18} className="text-emerald-400 shrink-0" />
-              <span>Hospital Linen</span>
+              <Archive size={18} className="text-emerald-400 shrink-0" />
+              <span>Linen</span>
             </h5>
 
             <div
@@ -125,9 +125,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 isOpen ? "hidden" : "block"
               }`}
               aria-hidden={isOpen}
-              title="Hospital Linen"
+              title="Linen"
             >
-              <Hospital size={18} className="text-emerald-400 shrink-0" />
+              <Archive size={18} className="text-emerald-400 shrink-0" />
             </div>
           </div>
 

@@ -87,77 +87,69 @@ function App() {
           <Route
             path="*"
             element={
-              <ProtectedRoute>
-                <div className="flex w-screen min-h-screen overflow-x-hidden">
-                  {/* Sidebar */}
-                  <Sidebar
-                    isOpen={sidebarOpen}
-                    onClose={() => setSidebarOpen(false)}
+              <div className="flex w-screen min-h-screen overflow-x-hidden">
+                {/* Sidebar */}
+                <Sidebar
+                  isOpen={sidebarOpen}
+                  onClose={() => setSidebarOpen(false)}
+                />
+
+                {/* Main content */}
+                <div
+                  className="flex flex-col flex-1 w-full transition-all duration-300"
+                  style={{
+                    marginLeft: isMobile ? 0 : sidebarOpen ? 250 : 60,
+                  }}
+                >
+                  <Navbar
+                    toggleSidebar={() => setSidebarOpen((p) => !p)}
+                    sidebarOpen={sidebarOpen}
                   />
 
-                  {/* Main content */}
-                  <div
-                    className="flex flex-col flex-1 w-full transition-all duration-300"
-                    style={{
-                      marginLeft: isMobile ? 0 : sidebarOpen ? 250 : 60,
-                    }}
-                  >
-                    <Navbar
-                      toggleSidebar={() => setSidebarOpen((p) => !p)}
-                      sidebarOpen={sidebarOpen}
-                    />
-
-                    {/* Page container */}
-                    <main className="flex-1 px-4 pt-4 overflow-y-auto">
-                      <Routes>
-                        <Route
-                          path="/"
-                          element={<Dashboard statusCounts={statusCounts} />}
-                        />
-                        <Route
-                          path="/information"
-                          element={<BatchSelesaiInfo />}
-                        />
-                        <Route
-                          path="/riwayat/selesai"
-                          element={<RiwayatSelesai />}
-                        />
-                        <Route
-                          path="/riwayat/register"
-                          element={<RiwayatRegister />}
-                        />
-                        <Route
-                          path="/riwayat/hilang"
-                          element={<LinenHilang />}
-                        />
-                        <Route path="/master-linen" element={<MasterLinen />} />
-                        <Route path="/ruangan" element={<Ruangan />} />
-                        <Route path="/inventory" element={<InventoryPage />} />
-                        <Route
-                          path="/inventory/storage"
-                          element={<StoragePage />}
-                        />
-                        <Route
-                          path="/inventory/onway"
-                          element={<OnWayPage />}
-                        />
-                        <Route
-                          path="/inventory/storage/:linenType"
-                          element={<StorageDetailPage />}
-                        />
-                        <Route
-                          path="/inventory/storage/history"
-                          element={<StorageLog />}
-                        />
-                        <Route
-                          path="/inventory/onway/history"
-                          element={<OnWayLog />}
-                        />
-                      </Routes>
-                    </main>
-                  </div>
+                  {/* Page container */}
+                  <main className="flex-1 px-4 pt-4 overflow-y-auto">
+                    <Routes>
+                      <Route
+                        path="/"
+                        element={<Dashboard statusCounts={statusCounts} />}
+                      />
+                      <Route
+                        path="/information"
+                        element={<BatchSelesaiInfo />}
+                      />
+                      <Route
+                        path="/riwayat/selesai"
+                        element={<RiwayatSelesai />}
+                      />
+                      <Route
+                        path="/riwayat/register"
+                        element={<RiwayatRegister />}
+                      />
+                      <Route path="/riwayat/hilang" element={<LinenHilang />} />
+                      <Route path="/master-linen" element={<MasterLinen />} />
+                      <Route path="/ruangan" element={<Ruangan />} />
+                      <Route path="/inventory" element={<InventoryPage />} />
+                      <Route
+                        path="/inventory/storage"
+                        element={<StoragePage />}
+                      />
+                      <Route path="/inventory/onway" element={<OnWayPage />} />
+                      <Route
+                        path="/inventory/storage/:linenType"
+                        element={<StorageDetailPage />}
+                      />
+                      <Route
+                        path="/inventory/storage/history"
+                        element={<StorageLog />}
+                      />
+                      <Route
+                        path="/inventory/onway/history"
+                        element={<OnWayLog />}
+                      />
+                    </Routes>
+                  </main>
                 </div>
-              </ProtectedRoute>
+              </div>
             }
           />
         </Routes>

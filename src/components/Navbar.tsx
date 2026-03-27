@@ -227,7 +227,7 @@ export default function Navbar({ toggleSidebar, sidebarOpen }: NavbarProps) {
             <div className="flex shrink-0 items-center gap-2 pl-1">
               <span className="text-gray-900 dark:text-white font-semibold flex items-center gap-2">
                 <span className="hidden sm:inline">
-                  Linen Tracker – RSUD Cileungsi
+                  Linen Tracker – SIMTECH
                 </span>
                 <span className="inline sm:hidden text-sm">Linen Tracker</span>
               </span>
