@@ -116,8 +116,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           ${isOpen ? "opacity-100" : "opacity-0"}
                         `}
             >
-              <Archive size={18} className="text-emerald-400 shrink-0" />
-              <span>Linen</span>
+              <img
+                src="../public/images/Logo.png"
+                alt="Archive Icon"
+                className="w-[18px] h-[18px] shrink-0 object-contain"
+              />
+              <span>SIMTECH</span>
             </h5>
 
             <div
@@ -127,7 +131,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               aria-hidden={isOpen}
               title="Linen"
             >
-              <Archive size={18} className="text-emerald-400 shrink-0" />
+              <img
+                src="../public/images/Logo.png"
+                alt="Archive Icon"
+                className="w-[18px] h-[18px] shrink-0 object-contain"
+              />
             </div>
           </div>
 
