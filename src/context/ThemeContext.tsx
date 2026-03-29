@@ -31,7 +31,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     try {
       localStorage.setItem("theme", theme);
-    } catch {}
+    } catch { /* localStorage unavailable – ignore */ }
   }, [theme]);
 
   const setTheme = (t: Theme) => setThemeState(t);

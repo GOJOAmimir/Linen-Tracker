@@ -494,7 +494,7 @@ export default function MasterLinen() {
                 id="closeModalBtn"
                 type="button"
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-md p-1"
-                onClick={(e) => {
+                onClick={() => {
                   const root = document.getElementById("addLinenModal");
                   if (root) root.classList.add("hidden");
                 }}
