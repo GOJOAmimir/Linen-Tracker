@@ -1,5 +1,5 @@
 // Sidebar.tsx
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getUserRole } from "./auth";
 import {
@@ -18,7 +18,6 @@ type SidebarProps = { isOpen: boolean; onClose?: () => void };
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const sidebarWidth = isOpen ? 250 : 60;
-  const navigate = useNavigate();
   const location = useLocation();
   const role = getUserRole();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
@@ -31,25 +30,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }).catch(() => {});
-      }
-    } finally {
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("token");
-      navigate("/login", { replace: true });
-    }
-  };
 
   const handleNavLinkClick = () => {
     if (isMobile && onClose) {

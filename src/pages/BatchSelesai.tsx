@@ -47,7 +47,7 @@ export default function BatchSelesaiInfo() {
             ? json.data
             : [];
         setBatchList(arr);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("fetch /batch-status error:", err);
         setBatchError("Gagal memuat daftar batch");
       } finally {
@@ -124,7 +124,7 @@ export default function BatchSelesaiInfo() {
               break;
             }
           }
-        } catch (e) {
+        } catch {
           continue;
         }
       }
@@ -155,9 +155,9 @@ export default function BatchSelesaiInfo() {
 
       setDetailRows(normalized);
       setSelected(batchId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("fetch /batch-report error:", err);
-      setDetailError(err?.message ?? "Gagal memuat detail batch");
+      setDetailError(err instanceof Error ? err.message : "Gagal memuat detail batch");
     } finally {
       setLoadingDetails(false);
     }

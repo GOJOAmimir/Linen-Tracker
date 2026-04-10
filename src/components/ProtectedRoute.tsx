@@ -27,11 +27,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }
 
+  const decodedExp = decoded?.exp ?? null;
+
   // effect always registered (hooks must run unconditionally)
   useEffect(() => {
     if (!token) return;
 
-    if (!decoded) {
+    if (decodedExp === null && !decoded) {
       localStorage.removeItem("token");
       navigate("/login", { replace: true });
       return;
@@ -39,14 +41,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     const nowSec = Date.now() / 1000;
 
-    if (decoded.exp && decoded.exp < nowSec) {
+    if (decodedExp && decodedExp < nowSec) {
       localStorage.removeItem("token");
       navigate("/login", { replace: true });
       return;
     }
 
-    if (decoded.exp) {
-      const msUntilExpiry = Math.max(0, decoded.exp * 1000 - Date.now());
+    if (decodedExp) {
+      const msUntilExpiry = Math.max(0, decodedExp * 1000 - Date.now());
       const t = window.setTimeout(() => {
         localStorage.removeItem("token");
         navigate("/login", { replace: true });
@@ -56,7 +58,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     return;
-  }, [token, decoded?.exp, navigate]);
+  }, [token, decodedExp, decoded, navigate]);
 
   if (!token) {
     return <Navigate to="/login" replace />;
