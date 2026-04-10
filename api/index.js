@@ -71,11 +71,11 @@ app.use(express.json());
 // app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
 
 app.use("/api/missing", missingRoutes);
-app.use("/login", loginHandler);
-app.use("/master-linen", MasterLinen);
-app.use("/batches/latest", LatestBatch);
-app.use("/inventory/", Inventory);
-app.use("/dashboard", Dashboard);
+app.use("/api/login", loginHandler);
+app.use("/api/master-linen", MasterLinen);
+app.use("/api/batches/latest", LatestBatch);
+app.use("/api/inventory", Inventory);
+app.use("/api/dashboard", Dashboard);
 
 // GET /linen/top-cycles
 app.get("/linen/top-cycles", async (req, res) => {
