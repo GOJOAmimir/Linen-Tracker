@@ -9,4 +9,5 @@ export default defineConfig({
       "@": "/src",
     },
   },
+  base: process.env.VITE_BASE_PATH || "/",
 });

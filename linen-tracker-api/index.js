@@ -47,20 +47,28 @@ const pool = mysql.createPool({
 /*───────────────────────────────────────────────────────────────*/
 /* 2. Middleware global                                         */
 /*───────────────────────────────────────────────────────────────*/
+const allowedOrigins = ["http://localhost:5173", /\.vercel\.app$/];
+
 app.use(
   cors({
-    origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
 
-app.options(
-  /.*/,
-  cors({
-    origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (allowed instanceof RegExp) return allowed.test(origin);
+        return allowed === origin;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.log("CORS Blocked for origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
 
@@ -71,11 +79,11 @@ app.use(express.json());
 // app.get("/", (_req, res) => res.send("Linen Tracker API is running!"));
 
 app.use("/api/missing", missingRoutes);
-app.use("/api/login", loginHandler);
-app.use("/api/master-linen", MasterLinen);
-app.use("/api/batches/latest", LatestBatch);
-app.use("/api/inventory", Inventory);
-app.use("/api/dashboard", Dashboard);
+app.use("/login", loginHandler);
+app.use("/master-linen", MasterLinen);
+app.use("/batches/latest", LatestBatch);
+app.use("/inventory/", Inventory);
+app.use("/dashboard", Dashboard);
 
 // GET /linen/top-cycles
 app.get("/linen/top-cycles", async (req, res) => {
