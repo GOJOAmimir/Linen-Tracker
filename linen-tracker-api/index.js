@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
-import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import { pool } from "./db.js";
 
 import missingRoutes from "./routes/rHilang.js";
 import loginHandler from "./routes/rlogin.js";
@@ -20,18 +20,6 @@ const app = express();
 /*───────────────────────────────────────────────────────────────*/
 /* 1. Konfigurasi koneksi MySQL                                 */
 /*───────────────────────────────────────────────────────────────*/
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false },
-  timezone: "+07:00",
-  dateStrings: ["DATE", "DATETIME", "TIMESTAMP"],
-  waitForConnections: true,
-  connectionLimit: 10,
-});
 
 /* Tes koneksi di awal */
 (async () => {
@@ -203,8 +191,8 @@ app.get("/batch-status", async (req, res) => {
               WHEN bo.BATCH_OUT_ID IS NOT NULL THEN 'FINISHED'
               ELSE 'IN PROGRESS'
           END AS status
-      FROM BATCH_IN bi
-      LEFT JOIN BATCH_OUT bo 
+      FROM batch_in bi
+      LEFT JOIN batch_out bo 
           ON bi.BATCH_IN_ID = bo.BATCH_OUT_ID
       ORDER BY bi.BATCH_IN_DATETIME DESC
     `;

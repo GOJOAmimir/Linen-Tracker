@@ -53,30 +53,60 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://100.108.196.112:3001");
-    wsRef.current = ws;
+    const wsUrl = import.meta.env.VITE_WS_URL;
+    const isSecure = window.location.protocol === "https:";
+    const isWsInsecure = wsUrl?.startsWith("ws://");
 
-    ws.onmessage = (msg) => {
-      try {
-        const json = JSON.parse(msg.data);
+    if (!wsUrl || (isSecure && isWsInsecure)) {
+      console.warn(
+        "WebSocket diblokir: Tidak bisa menggunakan ws:// di halaman HTTPS. " +
+          "Gunakan wss:// atau jalankan di localhost.",
+      );
+      return;
+    }
 
-        if (json.type === "linen_status") {
-          const list = json.data as LinenItem[];
+    let ws: WebSocket;
 
-          setStatusCounts({
-            bersih: list.filter((x) => x.Status === "Bersih").length,
-            dicuci: list.filter((x) => x.Status === "Dicuci").length,
-            intransit: list.filter((x) => x.Status === "InTransit").length,
-            dipakai: list.filter((x) => x.Status === "Dipakai").length,
-            hilang: list.filter((x) => x.Status === "Hilang").length,
-          });
+    try {
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log("✅ WebSocket Connected");
+      };
+
+      ws.onmessage = (msg) => {
+        try {
+          const json = JSON.parse(msg.data);
+          if (json.type === "linen_status") {
+            const list = json.data as LinenItem[];
+            setStatusCounts({
+              bersih: list.filter((x) => x.Status === "Bersih").length,
+              dicuci: list.filter((x) => x.Status === "Dicuci").length,
+              intransit: list.filter((x) => x.Status === "InTransit").length,
+              dipakai: list.filter((x) => x.Status === "Dipakai").length,
+              hilang: list.filter((x) => x.Status === "Hilang").length,
+            });
+          }
+        } catch (err) {
+          console.error("❌ WS parse error:", err);
         }
-      } catch (err) {
-        console.error("WS parse error:", err);
-      }
-    };
+      };
 
-    return () => ws.close();
+      ws.onerror = (err) => {
+        console.error("❌ WebSocket Error:", err);
+      };
+
+      ws.onclose = () => {
+        console.log("ℹ️ WebSocket Disconnected");
+      };
+    } catch (err) {
+      console.error("Critical WS Error:", err);
+    }
+
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
   }, []);
 
   return (

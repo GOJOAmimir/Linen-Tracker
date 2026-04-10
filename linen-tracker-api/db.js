@@ -9,6 +9,7 @@ export const pool = mysql.createPool({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   ssl: { rejectUnauthorized: false },
+  allowPublicKeyRetrieval: true,
   timezone: "+07:00",
   dateStrings: ["DATE", "DATETIME", "TIMESTAMP"],
   waitForConnections: true,

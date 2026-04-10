@@ -10,7 +10,7 @@ export const LoginHandler = async (req, res) => {
   try {
     const [rows] = await pool.query(
       "SELECT * FROM users_shinka WHERE username = ?",
-      [username]
+      [username],
     );
 
     if (rows.length === 0) {
@@ -31,7 +31,7 @@ export const LoginHandler = async (req, res) => {
     const token = jwt.sign(
       { username: user.username, role: user.role || "user" },
       process.env.JWT_SECRET || "SECRET_KEY",
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     res.json({ success: true, token });
