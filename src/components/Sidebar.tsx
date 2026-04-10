@@ -12,7 +12,6 @@ import {
   BsBox,
   BsBuilding,
 } from "react-icons/bs";
-import { Archive } from "lucide-react";
 
 type SidebarProps = { isOpen: boolean; onClose?: () => void };
 

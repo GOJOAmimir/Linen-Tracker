@@ -55,7 +55,7 @@ export default function LoginPage() {
         >
           <div className="text-center mb-6">
             <img
-              src="/images/logo-small.ico"
+              src="/images/Logo.png"
               alt="logo"
               className="h-16 mx-auto mb-3"
               onError={(e) => {
@@ -63,10 +63,10 @@ export default function LoginPage() {
               }}
             />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-              RSUD CILEUNGSI
+              LINEN TRACKER
             </h2>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-              Sistem RFID Linen Tracking
+              Sistem Linen RFID
             </p>
           </div>
 
@@ -125,7 +125,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center text-gray-500 text-xs mt-3">
-            © RSUD {new Date().getFullYear()}
+            © SIMTECH {new Date().getFullYear()}
           </div>
         </form>
       </div>
