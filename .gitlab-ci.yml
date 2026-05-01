@@ -52,7 +52,7 @@ deploy:
   script:
     - >
       ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST"
-      "cd /opt/linen-tracker &&
+      "cd /opt/Linen-Tracker &&
        docker compose pull &&
        docker compose up -d --remove-orphans &&
        docker image prune -f"
