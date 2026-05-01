@@ -53,7 +53,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://100.108.196.112:3001");
+    const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:3001";
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onmessage = (msg) => {

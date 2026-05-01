@@ -14,6 +14,10 @@ import Dashboard from "./routes/rDashboard.js";
 
 dotenv.config();
 
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((s) => s.trim())
+  : ["http://localhost:5173"];
+
 const app = express();
 // const path = require("path");
 
@@ -49,7 +53,7 @@ const pool = mysql.createPool({
 /*───────────────────────────────────────────────────────────────*/
 app.use(
   cors({
-    origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
+    origin: corsOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
@@ -58,7 +62,7 @@ app.use(
 app.options(
   /.*/,
   cors({
-    origin: ["http://100.108.196.112:5173", "http://localhost:5173"],
+    origin: corsOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),

@@ -170,6 +170,3 @@ vite.config.ts.timestamp-*
 .env
 .env.local
 .env.*.local
-
-echo ".env" >> .gitignore
-package-lock.json
