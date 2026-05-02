@@ -199,8 +199,8 @@ app.get("/batch-status", async (req, res) => {
               WHEN bo.BATCH_OUT_ID IS NOT NULL THEN 'FINISHED'
               ELSE 'IN PROGRESS'
           END AS status
-      FROM BATCH_IN bi
-      LEFT JOIN BATCH_OUT bo 
+      FROM batch_in bi
+      LEFT JOIN batch_out bo 
           ON bi.BATCH_IN_ID = bo.BATCH_OUT_ID
       ORDER BY bi.BATCH_IN_DATETIME DESC
     `;
