@@ -1,6 +1,6 @@
 services:
   linen-tracker:
-    image: 192.168.50.10:5050/mbudit/linen-tracker:latest
+    image: gitlab.lan:5050/simtechdev/linen-tracker:latest
     container_name: linen-tracker
     restart: unless-stopped
     ports:
