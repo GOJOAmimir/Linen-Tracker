@@ -15,8 +15,8 @@ test:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
-# ── Build Docker Image ──────────────────────────────────────────
-build:
+# ── Build API Image ────────────────────────────────────────────
+build:api:
   stage: build
   image: docker:24
   services:
@@ -29,13 +29,37 @@ build:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - >
       docker build
-      --build-arg VITE_API_URL=""
-      --build-arg VITE_WS_URL="$VITE_WS_URL"
-      -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-      -t "$CI_REGISTRY_IMAGE:latest"
+      -f Dockerfile.api
+      -t "$CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHORT_SHA"
+      -t "$CI_REGISTRY_IMAGE/api:latest"
       .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - docker push "$CI_REGISTRY_IMAGE:latest"
+    - docker push "$CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHORT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/api:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ── Build Client Image ─────────────────────────────────────────
+build:client:
+  stage: build
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--insecure-registry=gitlab.lan:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - >
+      docker build
+      -f Dockerfile.client
+      --build-arg VITE_API_URL="$VITE_API_URL"
+      --build-arg VITE_WS_URL="$VITE_WS_URL"
+      -t "$CI_REGISTRY_IMAGE/client:$CI_COMMIT_SHORT_SHA"
+      -t "$CI_REGISTRY_IMAGE/client:latest"
+      .
+    - docker push "$CI_REGISTRY_IMAGE/client:$CI_COMMIT_SHORT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/client:latest"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -44,7 +68,7 @@ deploy:
   stage: deploy
   image: alpine
   before_script:
-    - apk add --no-cache openssh-client
+    - apk add --no-cache openssh
     - mkdir -p ~/.ssh
     - cp "$DEPLOY_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
@@ -52,8 +76,12 @@ deploy:
   script:
     - >
       ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST"
-      "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
-       cd /opt/Linen-Tracker &&
+      "mkdir -p /opt/$CI_PROJECT_NAME &&
+       printf 'PORT=%s\nDB_HOST=%s\nDB_PORT=%s\nDB_USER=%s\nDB_PASS=%s\nDB_NAME=%s\nJWT_SECRET=%s\nCORS_ORIGIN=%s\n'
+         '$PORT' '$DB_HOST' '$DB_PORT' '$DB_USER' '$DB_PASS' '$DB_NAME' '$JWT_SECRET' '$CORS_ORIGIN'
+         > /opt/$CI_PROJECT_NAME/.env &&
+       docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+       cd /opt/$CI_PROJECT_NAME &&
        docker compose pull &&
        docker compose up -d --remove-orphans &&
        docker image prune -f"

@@ -1,9 +1,16 @@
 services:
-  linen-tracker:
-    image: gitlab.lan:5050/simtechdev/linen-tracker:latest
-    container_name: linen-tracker
+  linen-tracker-api:
+    image: gitlab.lan:5050/simtechdev/linen-tracker/api:latest
+    container_name: linen-tracker-api
     restart: unless-stopped
     ports:
       - "8080:8080"
     env_file:
       - .env
+
+  linen-tracker-client:
+    image: gitlab.lan:5050/simtechdev/linen-tracker/client:latest
+    container_name: linen-tracker-client
+    restart: unless-stopped
+    ports:
+      - "8082:80"
